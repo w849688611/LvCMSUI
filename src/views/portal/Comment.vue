@@ -265,7 +265,7 @@
             }
           }).catch(err=>{
             util.handleErr.call(this,err);
-          })
+          });
         },
         toggleCommentStatus(row){
           let id=row.id;

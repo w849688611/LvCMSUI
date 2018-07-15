@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/views/Login'
 import Base from '@/views/Base'
+import DashBoard from '@/views/dashboard/DashBoard'
 import Auth from '@/views/auth/Auth'
 import Admin from '@/views/auth/Admin'
 import Role from '@/views/auth/Role'
@@ -14,6 +15,7 @@ import UserGroup from '@/views/user/UserGroup'
 import Template from '@/views/portal/Template'
 import Nav from '@/views/portal/Nav'
 import Slide from '@/views/portal/Slide'
+import Plugin from '@/views/plugin/Plugin'
 
 Vue.use(Router);
 
@@ -29,6 +31,11 @@ export default new Router({
       name:'Base',
       component:Base,
       children:[
+        {
+          path:'/',
+          name:'DashBoard',
+          component:DashBoard
+        },
         {
           path:'/auth/auth',
           name:'Auth',
@@ -88,6 +95,11 @@ export default new Router({
           path:'/portal/slide',
           name:'Slide',
           component:Slide
+        },
+        {
+          path:'/plugin/plugin',
+          name:'Plugin',
+          component:Plugin
         }
       ]
     }

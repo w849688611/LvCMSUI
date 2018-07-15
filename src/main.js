@@ -80,7 +80,18 @@ router.beforeEach((to,from,next)=>{
       }).then(res=>{
         let data=res.data;
         if(data.status=='200'){
-          http.get('/api/role/checkRoleOwnAuth',{})
+          http.get('/api/role/checkRoleOwnAuth',{
+            headers:{
+              token:token
+            },
+            params:{
+              uris:to.fullPath
+            }
+          }).then(res=>{
+            if(res.data.status=='200'){
+              next();
+            }
+          });
           next();
         }
         else{

@@ -5,13 +5,13 @@
         <el-button size="small" type="success" @click="showAddDialog"><i class="el-icon-third-add1"></i>新增文章</el-button>
       </el-col>
       <el-col :span="6" :offset="8">
-        <el-input></el-input>
+        <el-input v-model="searchText"></el-input>
       </el-col>
       <el-col :span="2">
-        <el-button icon="el-icon-search" type="primary"></el-button>
+        <el-button icon="el-icon-search" type="primary" @click="searchData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="posts" border size="medium" style="margin:10px auto;">
+    <el-table :data="posts" v-loading="loading" border size="medium" style="margin:10px auto;">
       <el-table-column
         label="标题"
         prop="title"></el-table-column>
@@ -64,130 +64,145 @@
       <el-form :model="form" :rules="dataRules">
         <el-row :gutter="30">
           <el-col :span="18">
-            <el-form-item label="所属栏目">
-              <el-input readonly :value="categoryNames" @focus="showCategorySelectDialog"></el-input>
-            </el-form-item>
-            <el-form-item label="文章标题" prop="title">
-            <el-input v-model="form.title" auto-complete="off"></el-input>
-          </el-form-item>
-            <el-form-item label="文章作者">
-              <el-input v-model="form.author" auto-complete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="发布日期">
-              <br>
-              <el-date-picker
-                v-model="form.published_time"
-                type="datetime"
-                value-format="timestamp"
-                placeholder="选择日期时间" style="width: 100%;">
-              </el-date-picker>
-            </el-form-item>
-            <el-form-item label="关键字">
-              <el-input v-model="form.keywords" auto-complete="off" ></el-input>
-            </el-form-item>
-            <el-form-item label="摘要">
-              <el-input v-model="form.excerpt" auto-complete="off" type="textarea" :rows="3" ></el-input>
-            </el-form-item>
-            <el-form-item label="文章内容">
-              <br>
-              <vue-neditor id="addEditor" height="500px" :content="form.content" ref="addEditor"></vue-neditor>
-            </el-form-item>
-            <el-form-item label="附件">
-            <br>
-            <el-table :data="form.more.fileList" border>
-              <el-table-column label="文件名" prop="name">
-                <template slot-scope="scope">
-                  <el-input v-model="scope.row.name"></el-input>
-                </template>
-              </el-table-column>
-              <el-table-column label="路径" prop="url"></el-table-column>
-              <el-table-column label="操作">
-                <template slot-scope="scope">
-                  <el-button type="danger" size="small" @click.native.prevent="deleteFileRow(scope.$index)">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div style="height: 10px;"></div>
-            <el-upload
-              :action="fileUploadUrl"
-              :headers="uploadHeaders"
-              :show-file-list="false"
-              :on-success="uploadFileSuccess">
-              <el-button type="primary" size="small">添加附件</el-button>
-            </el-upload>
-          </el-form-item>
-            <el-form-item label="图集">
-              <br>
-              <el-table :data="form.more.imageList" border>
-                <el-table-column label="缩略图">
-                  <template slot-scope="scope">
-                    <img :src="scope.row.url">
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作">
-                  <template slot-scope="scope">
-                    <el-button type="danger" size="small" @click.native.prevent="deleteImageRow(scope.$index)">删除</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div style="height: 10px;"></div>
-              <el-upload
-                :action="fileUploadUrl"
-                :headers="uploadHeaders"
-                :before-upload="beforeImageUpload"
-                :show-file-list="false"
-                :on-success="uploadImageSuccess">
-                <el-button type="primary" size="small">添加图片</el-button>
-              </el-upload>
-            </el-form-item>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章信息</div>
+              <el-form-item label="所属栏目">
+                <el-input readonly :value="categoryNames" @focus="showCategorySelectDialog"></el-input>
+              </el-form-item>
+              <el-form-item label="文章标题" prop="title">
+                <el-input v-model="form.title" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item label="文章作者">
+                <el-input v-model="form.author" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item label="发布日期">
+                <br>
+                <el-date-picker
+                  v-model="form.published_time"
+                  type="datetime"
+                  value-format="timestamp"
+                  placeholder="选择日期时间" style="width: 100%;">
+                </el-date-picker>
+              </el-form-item>
+              <el-form-item label="关键字">
+                <el-input v-model="form.keywords" auto-complete="off" ></el-input>
+              </el-form-item>
+              <el-form-item label="摘要">
+                <el-input v-model="form.excerpt" auto-complete="off" type="textarea" :rows="3" ></el-input>
+              </el-form-item>
+              <el-form-item label="文章内容">
+                <br>
+                <vue-neditor id="addEditor" height="500px" :content="form.content" ref="addEditor"></vue-neditor>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">附件</div>
+              <el-form-item label="附件">
+                <br>
+                <el-table :data="form.more.fileList" border>
+                  <el-table-column label="文件名" prop="name">
+                    <template slot-scope="scope">
+                      <el-input v-model="scope.row.name"></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="路径" prop="url"></el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button type="danger" size="small" @click.native.prevent="deleteFileRow(scope.$index)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div style="height: 10px;"></div>
+                <el-upload
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :show-file-list="false"
+                  :on-success="uploadFileSuccess">
+                  <el-button type="primary" size="small">添加附件</el-button>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="图集">
+                <br>
+                <el-table :data="form.more.imageList" border>
+                  <el-table-column label="缩略图">
+                    <template slot-scope="scope">
+                      <img :src="scope.row.url">
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button type="danger" size="small" @click.native.prevent="deleteImageRow(scope.$index)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div style="height: 10px;"></div>
+                <el-upload
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :before-upload="beforeImageUpload"
+                  :show-file-list="false"
+                  :on-success="uploadImageSuccess">
+                  <el-button type="primary" size="small">添加图片</el-button>
+                </el-upload>
+              </el-form-item>
+            </el-card>
           </el-col>
           <el-col :span="6">
-           <el-form-item label="文章封面">
-             <br>
-             <el-upload
-               class="avatar-uploader"
-               :action="fileUploadUrl"
-               :headers="uploadHeaders"
-               :show-file-list="false"
-               :on-success="uploadThumbnailSuccess">
-               <img v-if="form.more.thumbnail" :src="form.more.thumbnail" class="avatar">
-               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-             </el-upload>
-           </el-form-item>
-            <el-form-item label="文章状态">
-              <el-radio-group v-model="form.post_status">
-                <el-radio :label="1">显示</el-radio>
-                <el-radio :label="0">不显示</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="是否置顶">
-              <el-radio-group v-model="form.is_top">
-                <el-radio :label="0">普通</el-radio>
-                <el-radio :label="1">置顶</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="是否推荐">
-              <el-radio-group v-model="form.is_recommend">
-                <el-radio :label="0">普通</el-radio>
-                <el-radio :label="1">推荐</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="评论状态">
-              <el-radio-group v-model="form.comment_status">
-                <el-radio :label="1">开启</el-radio>
-                <el-radio :label="0">关闭</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="文章模版" >
-              <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
-                <el-option
-                  v-for="item in templates"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id">
-                </el-option>
-              </el-select>
-            </el-form-item>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章封面</div>
+              <el-form-item>
+                <br>
+                <el-upload
+                  class="avatar-uploader"
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :show-file-list="false"
+                  :on-success="uploadThumbnailSuccess">
+                  <img v-if="form.more.thumbnail" :src="form.more.thumbnail" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">状态信息</div>
+              <el-form-item label="文章状态">
+                <el-radio-group v-model="form.post_status">
+                  <el-radio :label="1">显示</el-radio>
+                  <el-radio :label="0">不显示</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="是否置顶">
+                <el-radio-group v-model="form.is_top">
+                  <el-radio :label="0">普通</el-radio>
+                  <el-radio :label="1">置顶</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="是否推荐">
+                <el-radio-group v-model="form.is_recommend">
+                  <el-radio :label="0">普通</el-radio>
+                  <el-radio :label="1">推荐</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="评论状态">
+                <el-radio-group v-model="form.comment_status">
+                  <el-radio :label="1">开启</el-radio>
+                  <el-radio :label="0">关闭</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章模版</div>
+              <el-form-item>
+                <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
+                  <el-option
+                    v-for="item in templates"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-card>
           </el-col>
         </el-row>
       </el-form>
@@ -200,129 +215,145 @@
       <el-form :model="form" :rules="dataRules">
         <el-row :gutter="30">
           <el-col :span="18">
-            <el-form-item label="所属栏目">
-              <el-input readonly :value="categoryNames" @focus="showCategorySelectDialog"></el-input>
-            </el-form-item>
-            <el-form-item label="文章标题" prop="title">
-              <el-input v-model="form.title" auto-complete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="文章作者">
-              <el-input v-model="form.author" auto-complete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="发布日期">
-              <br>
-              <el-date-picker
-                v-model="form.published_time"
-                type="datetime"
-                placeholder="选择日期时间" style="width: 100%;">
-              </el-date-picker>
-            </el-form-item>
-            <el-form-item label="关键字">
-              <el-input v-model="form.keywords" auto-complete="off" ></el-input>
-            </el-form-item>
-            <el-form-item label="摘要">
-              <el-input v-model="form.excerpt" auto-complete="off" type="textarea" :rows="3" ></el-input>
-            </el-form-item>
-            <el-form-item label="文章内容">
-              <br>
-              <vue-neditor id="updateEditor" height="500px" :content="form.content" ref="updateEditor"></vue-neditor>
-            </el-form-item>
-            <el-form-item label="附件">
-              <br>
-              <el-table :data="form.more.fileList" border v-if="form.more&&form.more.fileList">
-                <el-table-column label="文件名" prop="name">
-                  <template slot-scope="scope">
-                    <el-input v-model="scope.row.name"></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column label="路径" prop="url"></el-table-column>
-                <el-table-column label="操作">
-                  <template slot-scope="scope">
-                    <el-button type="danger" size="small" @click.native.prevent="deleteFileRow(scope.$index)">删除</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div style="height: 10px;"></div>
-              <el-upload
-                :action="fileUploadUrl"
-                :headers="uploadHeaders"
-                :show-file-list="false"
-                :on-success="uploadFileSuccess">
-                <el-button type="primary" size="small">添加附件</el-button>
-              </el-upload>
-            </el-form-item>
-            <el-form-item label="图集">
-              <br>
-              <el-table :data="form.more.imageList" border>
-                <el-table-column label="缩略图">
-                  <template slot-scope="scope">
-                    <img :src="scope.row.url">
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作">
-                  <template slot-scope="scope">
-                    <el-button type="danger" size="small" @click.native.prevent="deleteImageRow(scope.$index)">删除</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div style="height: 10px;"></div>
-              <el-upload
-                :action="fileUploadUrl"
-                :headers="uploadHeaders"
-                :before-upload="beforeImageUpload"
-                :show-file-list="false"
-                :on-success="uploadImageSuccess">
-                <el-button type="primary" size="small">添加图片</el-button>
-              </el-upload>
-            </el-form-item>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章信息</div>
+              <el-form-item label="所属栏目">
+                <el-input readonly :value="categoryNames" @focus="showCategorySelectDialog"></el-input>
+              </el-form-item>
+              <el-form-item label="文章标题" prop="title">
+                <el-input v-model="form.title" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item label="文章作者">
+                <el-input v-model="form.author" auto-complete="off"></el-input>
+              </el-form-item>
+              <el-form-item label="发布日期">
+                <br>
+                <el-date-picker
+                  v-model="form.published_time"
+                  type="datetime"
+                  value-format="timestamp"
+                  placeholder="选择日期时间" style="width: 100%;">
+                </el-date-picker>
+              </el-form-item>
+              <el-form-item label="关键字">
+                <el-input v-model="form.keywords" auto-complete="off" ></el-input>
+              </el-form-item>
+              <el-form-item label="摘要">
+                <el-input v-model="form.excerpt" auto-complete="off" type="textarea" :rows="3" ></el-input>
+              </el-form-item>
+              <el-form-item label="文章内容">
+                <br>
+                <vue-neditor id="addEditor" height="500px" :content="form.content" ref="updateEditor"></vue-neditor>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">附件</div>
+              <el-form-item label="附件">
+                <br>
+                <el-table :data="form.more.fileList" border>
+                  <el-table-column label="文件名" prop="name">
+                    <template slot-scope="scope">
+                      <el-input v-model="scope.row.name"></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="路径" prop="url"></el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button type="danger" size="small" @click.native.prevent="deleteFileRow(scope.$index)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div style="height: 10px;"></div>
+                <el-upload
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :show-file-list="false"
+                  :on-success="uploadFileSuccess">
+                  <el-button type="primary" size="small">添加附件</el-button>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="图集">
+                <br>
+                <el-table :data="form.more.imageList" border>
+                  <el-table-column label="缩略图">
+                    <template slot-scope="scope">
+                      <img :src="scope.row.url">
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作">
+                    <template slot-scope="scope">
+                      <el-button type="danger" size="small" @click.native.prevent="deleteImageRow(scope.$index)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div style="height: 10px;"></div>
+                <el-upload
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :before-upload="beforeImageUpload"
+                  :show-file-list="false"
+                  :on-success="uploadImageSuccess">
+                  <el-button type="primary" size="small">添加图片</el-button>
+                </el-upload>
+              </el-form-item>
+            </el-card>
           </el-col>
           <el-col :span="6">
-            <el-form-item label="文章封面">
-              <br>
-              <el-upload
-                class="avatar-uploader"
-                :action="fileUploadUrl"
-                :headers="uploadHeaders"
-                :show-file-list="false"
-                :on-success="uploadThumbnailSuccess">
-                <img v-if="form.more.thumbnail" :src="form.more.thumbnail" class="avatar">
-                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-              </el-upload>
-            </el-form-item>
-            <el-form-item label="文章状态">
-              <el-radio-group v-model="form.post_status">
-                <el-radio :label="1">显示</el-radio>
-                <el-radio :label="0">不显示</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="是否置顶">
-              <el-radio-group v-model="form.is_top">
-                <el-radio :label="0">普通</el-radio>
-                <el-radio :label="1">置顶</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="是否推荐">
-              <el-radio-group v-model="form.is_recommend">
-                <el-radio :label="0">普通</el-radio>
-                <el-radio :label="1">推荐</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="评论状态">
-              <el-radio-group v-model="form.comment_status">
-                <el-radio :label="1">开启</el-radio>
-                <el-radio :label="0">关闭</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="文章模版" >
-              <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
-                <el-option
-                  v-for="item in templates"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id">
-                </el-option>
-              </el-select>
-            </el-form-item>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章封面</div>
+              <el-form-item>
+                <br>
+                <el-upload
+                  class="avatar-uploader"
+                  :action="fileUploadUrl"
+                  :headers="uploadHeaders"
+                  :show-file-list="false"
+                  :on-success="uploadThumbnailSuccess">
+                  <img v-if="form.more.thumbnail" :src="form.more.thumbnail" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">状态信息</div>
+              <el-form-item label="文章状态">
+                <el-radio-group v-model="form.post_status">
+                  <el-radio :label="1">显示</el-radio>
+                  <el-radio :label="0">不显示</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="是否置顶">
+                <el-radio-group v-model="form.is_top">
+                  <el-radio :label="0">普通</el-radio>
+                  <el-radio :label="1">置顶</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="是否推荐">
+                <el-radio-group v-model="form.is_recommend">
+                  <el-radio :label="0">普通</el-radio>
+                  <el-radio :label="1">推荐</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="评论状态">
+                <el-radio-group v-model="form.comment_status">
+                  <el-radio :label="1">开启</el-radio>
+                  <el-radio :label="0">关闭</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-card>
+            <el-card style="margin-bottom:20px;">
+              <div slot="header">文章模版</div>
+              <el-form-item>
+                <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
+                  <el-option
+                    v-for="item in templates"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-card>
           </el-col>
         </el-row>
       </el-form>
@@ -423,6 +454,9 @@
     name: "post",
     data(){
       return{
+        loading:false,
+        searchText:'',
+        getDataType:'1',//1为普通获取，2为搜索获取
         currentPage:1,
         pageSize:10,
         total:0,
@@ -502,6 +536,9 @@
             more:{}
         };
         this.addDialog=true;
+        this.$nextTick(()=>{
+          this.$refs.addEditor.setContent('');
+        });
       },
       showUpdateDialog(row){
         this.$axios.post('/api/post/get',{
@@ -563,7 +600,14 @@
       },
       pageChange(page){
         this.currentPage=page;
-        this.getData();
+        if(this.getDataType=='1'){
+          this.getData();
+          return;
+        }
+        if(this.getDataType=='2') {
+          this.searchData();
+          return;
+        }
       },
       addData(){
         //浅克隆一下，避免影响真实数据,克隆出来时间对象变字符串了，因此还是用原来对象的获取一下（待优化）
@@ -572,8 +616,8 @@
         if(this.form.published_time.getTime){
           form.published_time=this.form.published_time.getTime();
         }
-        if(this.form.published_time.toString().length==13){
-          form.published_time=this.form.published_time.toString().slice(0,-3);
+        if(form.published_time.toString().length==13){
+          form.published_time=form.published_time.toString().slice(0,-3);
         }
         form.category=JSON.stringify(form.category);
         form.more=JSON.stringify(this.form.more);
@@ -625,13 +669,13 @@
         if(this.form.published_time.getTime){
           form.published_time=this.form.published_time.getTime();
         }
-        if(this.form.published_time.toString().length==13){
-          form.published_time=this.form.published_time.toString().slice(0,-3);
+        if(form.published_time.toString().length==13){
+          form.published_time=form.published_time.toString().slice(0,-3);
         }
         form.category=JSON.stringify(this.form.category);
         form.more=JSON.stringify(this.form.more);
         form.content=this.$refs.updateEditor.getContent();
-        $axios.post('/api/post/update',form,{
+        this.$axios.post('/api/post/update',form,{
           headers:{
             token:utils.getToken()
           }
@@ -650,6 +694,7 @@
         });
       },
       getData(){
+        this.loading=true;
         this.$axios.post('/api/post/getByPage',{
           page:this.currentPage,
           pageSize:this.pageSize
@@ -659,6 +704,7 @@
           }
         })
           .then(res=>{
+            this.loading=false;
             let data=res.data;
             if(data.status=='200'){
               this.posts=data.data.pageData;
@@ -668,6 +714,43 @@
           .catch(err=>{
             utils.handleErr.call(this,err);
           });
+      },
+      searchData(){
+        if(this.searchText.trim()==''){
+          this.currentPage=1;
+          this.pageSize=10;
+          this.getDataType=1;
+          this.getData();
+          return;
+        }
+        //若为首次搜索，则改变数据获取类型标识，并归位分页
+        if(this.getDataType=='1'){
+          this.getDataType='2';
+          this.currentPage=1;
+          this.pageSize=10;
+        }
+        this.loading=true;
+        this.$axios.post('/api/post/search',{
+          keyword:this.searchText,
+          page:this.currentPage,
+          pageSize:this.pageSize
+        },{
+          headers:{
+            token:utils.getToken(),
+          }
+        }).then(res=>{
+          this.loading=false;
+          let data=res.data;
+          if(data.status=='200'){
+            this.posts=data.data.pageData;
+            this.total=data.data.total;
+          }
+          else{
+            this.$message.error(util.responseToString(data.msg));
+          }
+        }).catch(err=>{
+          util.handleErr.call(this,err);
+        });
       },
       getCategory(id=0){
         this.$axios.get('/api/category/getTree',{
