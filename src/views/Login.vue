@@ -1,23 +1,27 @@
 <template>
 <div>
-  <!--<vue-particles-->
-    <!--color="#dedede"-->
-    <!--:particleOpacity="0.7"-->
-    <!--:particlesNumber="80"-->
-    <!--shapeType="circle"-->
-    <!--:particleSize="4"-->
-    <!--linesColor="#dedede"-->
-    <!--:linesWidth="1"-->
-    <!--:lineLinked="true"-->
-    <!--:lineOpacity="0.4"-->
-    <!--:linesDistance="150"-->
-    <!--:moveSpeed="3"-->
-    <!--:hoverEffect="true"-->
-    <!--hoverMode="grab"-->
-    <!--:clickEffect="true"-->
-    <!--clickMode="push">-->
-  <!--</vue-particles>-->
-  <div id="particles-js"></div>
+  <vue-particles
+    color="#dedede"
+    :particleOpacity="0.7"
+    :particlesNumber="80"
+    shapeType="circle"
+    :particleSize="4"
+    linesColor="#dedede"
+    :linesWidth="1"
+    :lineLinked="true"
+    :lineOpacity="0.4"
+    :linesDistance="150"
+    :moveSpeed="3"
+    :hoverEffect="true"
+    hoverMode="grab"
+    :clickEffect="true"
+    clickMode="push"
+    v-if="banner==''"
+  >
+  </vue-particles>
+  <div id="bannerWrapper" v-else>
+    <img :src="banner">
+  </div>
   <div class="loginWrapper">
     <h1 class="loginTitle">LvCMS后台管理</h1>
     <el-input
@@ -51,7 +55,8 @@
             account:'',
             password:'',
             captcha:'',
-            captchaId:''
+            captchaId:'',
+            banner:''
           };
       },
       computed:{
@@ -61,6 +66,7 @@
       },
       mounted(){
           this.captchaId=Date.now();
+          this.getBanner();
       },
       methods:{
           login(){
@@ -93,22 +99,49 @@
               }
             })
           },
+        getBanner(){
+            this.$axios.get('/api/front/setting/get',{
+              params:{
+                itemName:'loginBanner',
+                onlyContent:true
+              }
+            }).then(res=>{
+              let data=res.data;
+              if(data.length>0){
+                this.banner=data[0].content
+              }
+            })
+        }
       },
     }
 </script>
 
 <style scoped>
 #particles-js{
-  /*background-color: #2F4056;*/
-  background: #1D4350;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #A43931, #1D4350);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #A43931, #1D4350); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background-color: #2F4056;
+  /*background: #1D4350;  !* fallback for old browsers *!*/
+  /*background: -webkit-linear-gradient(to right, #A43931, #1D4350);  !* Chrome 10-25, Safari 5.1-6 *!*/
+  /*background: linear-gradient(to right, #A43931, #1D4350); !* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ *!*/
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
   z-index: 1;
+}
+#bannerWrapper{
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+#bannerWrapper img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
   .loginWrapper{
     position: fixed;

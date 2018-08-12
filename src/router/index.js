@@ -16,7 +16,10 @@ import Template from '@/views/portal/Template'
 import Nav from '@/views/portal/Nav'
 import Slide from '@/views/portal/Slide'
 import Plugin from '@/views/plugin/Plugin'
-
+import FriendLink from '@/views/portal/FriendLink'
+import Setting from '@/views/setting/Setting'
+import SettingItem from '@/views/setting/SettingItem'
+import Test from '@/views/Test'
 Vue.use(Router);
 
 export default new Router({
@@ -25,6 +28,11 @@ export default new Router({
       path:'/login',
       name:'Login',
       component:Login
+    },
+    {
+      path:'/test',
+      name:'Test',
+      component:Test
     },
     {
       path:'/',
@@ -100,6 +108,21 @@ export default new Router({
           path:'/plugin/plugin',
           name:'Plugin',
           component:Plugin
+        },
+        {
+          path:'/portal/friendLink',
+          name:'FriendLink',
+          component:FriendLink
+        },
+        {
+          path:'/setting/setting',
+          name:'Setting',
+          component:Setting
+        },
+        {
+          path:'/setting/settingItem',
+          name:'Setting',
+          component:SettingItem
         }
       ]
     }

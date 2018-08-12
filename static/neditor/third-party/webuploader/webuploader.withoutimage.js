@@ -3274,7 +3274,7 @@
                     block.retried = block.retried || 0;
     
                     // 自动重试
-                    if ( block.chunks > 1 && ~'http,abort'.indexOf( type ) &&
+                    if ( block.chunks > 1 && ~'api,abort'.indexOf( type ) &&
                             block.retried < opts.chunkRetry ) {
     
                         block.retried++;
@@ -3282,7 +3282,7 @@
     
                     } else {
     
-                        // http status 500 ~ 600
+                        // api status 500 ~ 600
                         if ( !flag && type === 'server' ) {
                             type = requestAccept( type );
                         }

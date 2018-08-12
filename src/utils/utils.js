@@ -30,6 +30,7 @@ function handleErr(err){
   if(err.response.status===401){
     this.$router.replace('/login');
   }
+  console.log(err);
   this.$message.error(err.response.data.msg);
 }
 function clearObj(obj){
@@ -41,9 +42,13 @@ function convertTime(timestamp){
   if(!Number(timestamp)){
     return new Date();
   }
-if(Number(timestamp)&&timestamp.toString().length==10){
-  return new Date(Number(timestamp)*1000);
-}
+  if(timestamp.toString().length==10){
+    return new Date(Number(timestamp)*1000);
+  }
+  if(timestamp.toString().length==13){
+    return new Date(Number(timestamp));
+  }
+  return new Date();
 }
 export default {
   responseToString,

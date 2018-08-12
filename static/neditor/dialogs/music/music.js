@@ -9,7 +9,7 @@ function Music() {
         total:70,
         pageSize:10,
         dataUrl:"https://tingapi.b0.upaiyun.com/v1/restserver/ting?method=baidu.ting.search.common",
-        playerUrl:"http://box.baidu.com/widget/flash/bdspacesong.swf",
+        playerUrl:"api://box.baidu.com/widget/flash/bdspacesong.swf",
 
         init:function () {
             var me = this;
@@ -103,7 +103,7 @@ function Music() {
             return null;
         },
         _buildMusicHtml:function (playerUrl) {
-            var html = '<embed class="BDE_try_Music" allowfullscreen="false" pluginspage="http://www.macromedia.com/go/getflashplayer"';
+            var html = '<embed class="BDE_try_Music" allowfullscreen="false" pluginspage="api://www.macromedia.com/go/getflashplayer"';
             html += ' src="' + playerUrl + '"';
             html += ' width="1" height="1" style="position:absolute;left:-2000px;"';
             html += ' type="application/x-shockwave-flash" wmode="transparent" play="true" loop="false"';

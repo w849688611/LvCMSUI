@@ -8,14 +8,8 @@ import VueParticles from 'vue-particles'
 import Element from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import './assets/icon/iconfont.css'
-import axios from 'axios';
+import http from './api/http'
 import VueNeditor from './components/VueNeditor'
-// import VueQuillEditor from 'vue-quill-editor'
-// import {container, ImageExtend, QuillWatch} from 'quill-image-extend-module'
-// import 'quill/dist/quill.core.css'
-// import 'quill/dist/quill.snow.css'
-// import 'quill/dist/quill.bubble.css'
-import utils from "./utils/utils";
 Vue.config.productionTip = false;
 /**
  * element
@@ -28,42 +22,10 @@ Vue.use(VueParticles);
 /**
  * 富文本编辑器
  */
-// let editorConfig={
-//   modules: {
-//   ImageExtend: {
-//     loading: true,
-//       name: 'file',
-//       headers:(xhr)=>{
-//         xhr.setRequestHeader('token',utils.getToken());
-//       },
-//       action: process.env.BASE_URL+'/api/file/add',
-//       response: (res) => {
-//       if(res.status=='200'){
-//         return res.data.url;
-//       }
-//       return '';
-//     }
-//   },
-//   toolbar: {
-//     container: container,
-//       handlers: {
-//       'image': function () {
-//         QuillWatch.emit(this.quill.id)
-//       }
-//     }
-//   }
-// }
-// };
-// VueQuillEditor.Quill.register('modules/ImageExtend', ImageExtend);
-// Vue.use(VueQuillEditor,editorConfig);
 Vue.component('vue-neditor',VueNeditor);
 /**
  * 网络请求
  */
-//let http=axios.create({});
-let http=axios.create({
-  baseURL:process.env.BASE_URL
-});
 Vue.prototype.$baseURL=process.env.BASE_URL;
 Vue.prototype.$axios=http;
 /**
@@ -91,8 +53,10 @@ router.beforeEach((to,from,next)=>{
             if(res.data.status=='200'){
               next();
             }
+            else{
+              next('/login')
+            }
           });
-          next();
         }
         else{
           next('/login')

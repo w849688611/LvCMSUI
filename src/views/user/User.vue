@@ -2,10 +2,16 @@
   <div>
     <el-row>
       <el-col>
-        <el-button size="small" type="success" @click="showAddDialog">新增用户</el-button>
+        <el-button size="small" type="success" @click="showAddDialog" icon="el-icon-plus"></el-button>
+        <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
+        <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="users" border size="medium" style="margin:10px auto;">
+    <el-table :data="users" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      <el-table-column
+        type="selection"
+        width="40">
+      </el-table-column>
       <el-table-column
         label="ID"
         prop="id"
@@ -136,6 +142,7 @@
         currentUserGroupPage:1,
         userGroupPageSize:10,
         userGroupTotal:0,
+        selection:[],
         addDialog:false,
         updateDialog:false,
         userGroupSelectDialog:false,
@@ -211,6 +218,9 @@
       userGroupPageChange(page){
         this.currentUserGroupPage=page;
         this.getUserGroup();
+      },
+      selectChange(selection){
+        this.selection=selection;
       },
       addData(){
         this.$axios.post('/api/user/add',this.form,{
@@ -292,6 +302,29 @@
           .catch(err=>{
             utils.handleErr.call(this,err);
           })
+      },
+      deleteDataBySelection(){
+        let ids=this.selection.map(item=>item.id);
+        this.$confirm('确认删除所选项？')
+          .then(()=> {
+            this.$axios.post('/api/user/delete',{
+              ids:ids
+            },{
+              headers:{
+                token:utils.getToken()
+              }
+            }).then(res=>{
+              if(res.data.status=='200'){
+                this.$message.success(res.data.msg);
+                this.getData();
+              }
+              else{
+                this.$message.error(utils.responseToString(res.data.msg));
+              }
+            }).catch(err=>{
+              utils.handleErr.call(this,err);
+            })
+          });
       },
       getUserGroup(){
         this.$axios.get('/api/userGroup/getByPage',{

@@ -175,7 +175,7 @@
     <el-button type="primary" @click="treeDialog=false">关闭</el-button>
   </span>
     </el-dialog>
-    <el-dialog title="栏目下内容" :visible.sync="postDialog">
+    <el-dialog title="栏目下内容" width="65%" :visible.sync="postDialog">
       <el-table :data="categoryPost" border size="medium" style="margin:10px auto;">
         <el-table-column
           label="标题"
@@ -207,7 +207,20 @@
             <div v-if="scope.row.is_recommend==0" class="close"><i class="el-icon-third-newshot"></i><br></div>
           </template>
         </el-table-column>
+        <el-table-column label="操作" >
+          <template slot-scope="scope">
+            <el-button type="warning" @click="showPostContentDialog(scope.row)" size="mini">查看</el-button>
+          </template>
+        </el-table-column>
       </el-table>
+    </el-dialog>
+    <el-dialog :title="post.title" :visible.sync="postContentDialog">
+      <div class="postContent">
+        <div v-html="post.content"></div>
+      </div>
+      <span slot="footer">
+        <el-button @click="postContentDialog=false">关闭</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -226,6 +239,7 @@
         updateDialog:false,
         treeDialog:false,
         postDialog:false,
+        postContentDialog:false,
         categories:[],
         categoryTree:[],
         categoryPost:[],
@@ -248,6 +262,10 @@
           parent_id:[
             {required: true, message: '请选择父级权限', trigger: 'blur'}
           ]
+        },
+        post:{
+          title:'',
+          content:''
         }
       }
     },
@@ -315,6 +333,20 @@
         }).catch(err=>{
           utils.handleErr.call(this,err);
         })
+      },
+      showPostContentDialog(row){
+        let id=row.id;
+        this.$axios.post('/api/post/get',{id:id},{headers:{
+          token:utils.getToken()
+          }}).then(res=>{
+          let data=res.data;
+          if(data.status=='200'){
+            this.post=data.data;
+            this.postContentDialog=true;
+          }
+        }).catch(err=>{
+          utils.handleErr.call(this,err);
+        });
       },
       selectCategory(data){
         this.form.parent_id=data.id;
@@ -483,5 +515,13 @@
   .close{
     display: inline-block;
     color: #009688;
+  }
+  .postContent{
+    padding: 10px;
+  }
+  .postContent img{
+    width: 100%;
+    object-fit: cover;
+    object-position: center center;
   }
 </style>

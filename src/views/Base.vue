@@ -2,24 +2,24 @@
 <el-container style="height: 100%;">
   <el-header class="header">
     <h1 class="logoName">LvCMS</h1>
+    <!--<span @click="menuCollapse=!menuCollapse" style="color: white;font-size: 22px;cursor: pointer;"><i class="el-icon-menu"></i></span>-->
     <span @click="logout" class="logout"><i class="el-icon-third-exit"></i>&nbsp;退出登录</span>
   </el-header>
   <el-container style="height: 100%;">
-    <el-aside width="200px" style="height: 100%">
+    <el-aside :width="menuCollapse?'auto':'230px'" class="aside">
       <el-menu
-        default-active="2"
-        class="el-menu-vertical"
-        background-color="#2F4056"
+        background-color="#393D49"
         text-color="#fff"
         active-text-color="#009688"
         style="height: 100%;"
+        :collapse="menuCollapse"
         @select="menuSelect">
         <nav-menu-circle :menu="menu" level="0"></nav-menu-circle>
       </el-menu>
     </el-aside>
     <el-main class="main">
       <div class="breadWrapper" v-if="breadPath&&breadPath.length>0">
-        <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb separator="/">
           <el-breadcrumb-item v-for="item in breadPath">{{item}}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>
@@ -59,11 +59,13 @@
 <script>
   import utils from '../utils/utils'
   import NavMenuCircle from '../components/NavMenuCircle'
+  import apis from './../api/apis'
     export default {
         name: "base",
       data(){
         return {
-          menu:[],
+          menuCollapse:false,
+          //menu:[],
           breadPath:[]
         };
       },
@@ -81,6 +83,9 @@
           },
         tabItems(){
             return this.$store.state.Tab.tabItems;
+        },
+        menu(){
+            return this.$store.state.Menu.menus;
         }
       },
       mounted(){
@@ -89,31 +94,28 @@
           this.$store.commit('Tab/addTab',this.$store.state.Tab.dashboardPayload);
       },
       methods:{
-          getAuth(){
-            this.$axios.get('/api/auth/getTreeOfRole',{
-              headers:{
-                token:utils.getToken()
+        getAuth(){
+          apis.getAuth().then(res=>{
+            let data=res.data;
+            if(data.status='200'){
+              this.$store.commit('Menu/setMenu',data.data);
+              let menuIndex=this.searchMenuIndex(this.$route.path,this.$store.state.Menu.menus);//根据路由寻找菜单项目，用于还原刷新前的菜单状态
+              if(menuIndex!=-1){
+                menuIndex='0-'+menuIndex;
+                this.menuSelect(menuIndex);
               }
-            }).then(res=>{
-              let data=res.data;
-              if(data.status='200'){
-                this.menu=data.data;
-                let menuIndex=this.searchMenuIndex(this.$route.path,this.menu);//根据路由寻找菜单项目，用于还原刷新前的菜单状态
-                if(menuIndex!=-1){
-                  menuIndex='0-'+menuIndex;
-                  this.menuSelect(menuIndex);
+              else{
+                if(this.$route.path=='/'){
+                  let breadPath=[];
+                  breadPath.unshift('主页');
+                  this.breadPath=breadPath;
                 }
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            });
-          },
-        logout(){
-          this.$axios.get('/api/admin/logout',{
-            headers:{
-              token:utils.getToken()
             }
-          }).then(res=>{
+          });
+        },
+        logout(){
+          apis.logout().then(res=>{
             let data=res.data;
             if(data.status=='200'){
               utils.clearToken();
@@ -122,16 +124,12 @@
             else{
               utils.responseToString(data.msg);
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
         },
         menuSelect(index){
-            console.log(index);
             let path=index.split('-');
-            let temp=this.menu;
+            let temp=this.$store.state.Menu.menus;
             let breadPath=[];
-            //console.log(path);
             //由于需要递归组件，所以在配置菜单的时候有一个前导0，使得多级菜单会比本身多一个前导0，循环应从1位开始
             for(let i=1,len=path.length;i<len;i++){
               let tempIndex=parseInt(path[i]);
@@ -175,6 +173,18 @@
         tabClick(tab){
             let route=tab.$attrs.route;
             this.$router.replace(route);
+            let menuIndex=this.searchMenuIndex(route,this.$store.state.Menu.menus);
+            if(menuIndex!=-1){
+              menuIndex='0-'+menuIndex;
+              this.menuSelect(menuIndex);
+            }
+            else{
+              if(this.$route.path=='/'){
+                let breadPath=[];
+                breadPath.unshift('主页');
+                this.breadPath=breadPath;
+              }
+            }
         }
       }
     }
@@ -182,19 +192,20 @@
 
 <style>
 .header{
-  /*background-color: #393D49;*/
-  background: #141E30;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #243B55, #141E30);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #243B55, #141E30); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background-color: #2F9688;
+  /*background: #141E30;  !* fallback for old browsers *!*/
+  /*background: -webkit-linear-gradient(to right, #243B55, #141E30);  !* Chrome 10-25, Safari 5.1-6 *!*/
+  /*background: linear-gradient(to right, #243B55, #141E30); !* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ *!*/
 
 }
   .header .logoName{
-    margin: 0 20px;
     padding: 0;
     line-height: 60px;
-    color: #009688;
+    color: #f8f8f8;
     font-weight: 200;
     display: inline-block;
+    width: 210px;
+    margin: 0;
   }
   .logout{
     display: inline-block;
@@ -204,20 +215,25 @@
     float: right;
     font-size: 14px;
   }
+  .aside{
+    height: 100%;
+    transition: all .25s ease;
+  }
   .main{
     background-color: #eaeaee;
+    padding: 0px 10px!important;
   }
   .breadWrapper{
-    margin-bottom: 20px;
-    /*background: white;*/
-    border-radius: 6px;
-    padding: 5px 15px;
+    background: white;
+    padding: 18px 15px;
+    color: #666666;
+    margin: 0px -10px 10px -10px;
   }
   .tabWrapper .el-tabs__header{
-    border-bottom: none;
+    border-bottom: none!important;
   }
   .tabWrapper .el-tabs__content{
-    padding: 0;
+    padding: 0!important;
   }
   .contentWrapper{
     background: white;

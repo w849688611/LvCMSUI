@@ -39,8 +39,7 @@ import './../../static/neditor/i18n/zh-cn/zh-cn'
       },
       watch:{
           content:function(val,oleVal){
-            //this.editor.execCommand('inserthtml',val);
-            this.editor.setContent(val);
+            this.editor.setContent(val?val:'');
             this.editor.focus(true);
           }
       },

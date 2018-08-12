@@ -2,7 +2,9 @@
   <div>
     <el-row>
       <el-col :span="8">
-        <el-button size="small" type="success" @click="showAddDialog"><i class="el-icon-third-add1"></i>新增文章</el-button>
+        <el-button size="small" type="success" @click="showAddDialog" icon="el-icon-plus"></el-button>
+        <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
+        <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
       <el-col :span="6" :offset="8">
         <el-input v-model="searchText"></el-input>
@@ -11,7 +13,11 @@
         <el-button icon="el-icon-search" type="primary" @click="searchData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="posts" v-loading="loading" border size="medium" style="margin:10px auto;">
+    <el-table :data="posts" v-loading="loading" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      <el-table-column
+        type="selection"
+        width="40">
+      </el-table-column>
       <el-table-column
         label="标题"
         prop="title"></el-table-column>
@@ -45,9 +51,11 @@
       <el-table-column
         label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" size="mini" @click="showUpdateDialog(scope.row)">编辑</el-button>
-          <el-button type="warning" size="mini" @click="showCommentDialog(scope.row)">文章下评论</el-button>
-          <el-button type="danger" size="mini" @click="deleteData(scope.row)">删除</el-button>
+          <el-button-group>
+            <el-button type="primary" size="mini" @click="showUpdateDialog(scope.row)">编辑</el-button>
+            <el-button type="warning" size="mini" @click="showCommentDialog(scope.row)">文章评论</el-button>
+            <el-button type="danger" size="mini" @click="deleteData(scope.row)">删除</el-button>
+          </el-button-group>
         </template>
       </el-table-column>
     </el-table>
@@ -117,6 +125,7 @@
                   :action="fileUploadUrl"
                   :headers="uploadHeaders"
                   :show-file-list="false"
+                  :before-upload="beforeUploadNotify"
                   :on-success="uploadFileSuccess">
                   <el-button type="primary" size="small">添加附件</el-button>
                 </el-upload>
@@ -126,7 +135,7 @@
                 <el-table :data="form.more.imageList" border>
                   <el-table-column label="缩略图">
                     <template slot-scope="scope">
-                      <img :src="scope.row.url">
+                      <img :src="scope.row.url" style="width: 100%;height: auto;">
                     </template>
                   </el-table-column>
                   <el-table-column label="操作">
@@ -243,7 +252,7 @@
               </el-form-item>
               <el-form-item label="文章内容">
                 <br>
-                <vue-neditor id="addEditor" height="500px" :content="form.content" ref="updateEditor"></vue-neditor>
+                <vue-neditor id="updateEditor" height="500px" :content="form.content" ref="updateEditor"></vue-neditor>
               </el-form-item>
             </el-card>
             <el-card style="margin-bottom:20px;">
@@ -268,6 +277,7 @@
                   :action="fileUploadUrl"
                   :headers="uploadHeaders"
                   :show-file-list="false"
+                  :before-upload="beforeUploadNotify"
                   :on-success="uploadFileSuccess">
                   <el-button type="primary" size="small">添加附件</el-button>
                 </el-upload>
@@ -277,7 +287,7 @@
                 <el-table :data="form.more.imageList" border>
                   <el-table-column label="缩略图">
                     <template slot-scope="scope">
-                      <img :src="scope.row.url">
+                      <img :src="scope.row.url" style="width: 100%;height: auto;">
                     </template>
                   </el-table-column>
                   <el-table-column label="操作">
@@ -490,6 +500,7 @@
         //单纯的使用select-change事件改变form.category会导致每次显示前清空时候带着form.category也清空了
         //因此加一个中间属性
         tempSelectCategory:[],
+        selection:[],
         dataRules:{
           title:[
             {required: true, message: '请填写文章标题', trigger: 'blur'}
@@ -541,6 +552,20 @@
         });
       },
       showUpdateDialog(row){
+        this.form={
+          title:'',
+          author:'',
+          published_time:new Date(),
+          post_status:1,
+          comment_status:1,
+          is_top:0,
+          is_recommend:0,
+          keywords:'',
+          excerpt:'',
+          content:'',
+          category:[],
+          more:{}
+        };
         this.$axios.post('/api/post/get',{
           id:row.id
         },{
@@ -704,16 +729,20 @@
           }
         })
           .then(res=>{
-            this.loading=false;
             let data=res.data;
             if(data.status=='200'){
               this.posts=data.data.pageData;
               this.total=data.data.total;
             }
+            this.loading=false;
           })
           .catch(err=>{
+            this.loading=false;
             utils.handleErr.call(this,err);
           });
+        //   .finally(()=>{
+        //  兼容性低
+        // });
       },
       searchData(){
         if(this.searchText.trim()==''){
@@ -751,6 +780,32 @@
         }).catch(err=>{
           util.handleErr.call(this,err);
         });
+      },
+      selectChange(selection){
+        this.selection=selection;
+      },
+      deleteDataBySelection(){
+        let ids=this.selection.map(item=>item.id);
+        this.$confirm('确认删除所选项？')
+          .then(()=> {
+            this.$axios.post('/api/post/delete',{
+              ids:ids
+            },{
+              headers:{
+                token:utils.getToken()
+              }
+            }).then(res=>{
+              if(res.data.status=='200'){
+                this.$message.success(res.data.msg);
+                this.getData();
+              }
+              else{
+                this.$message.error(utils.responseToString(res.data.msg));
+              }
+            }).catch(err=>{
+              utils.handleErr.call(this,err);
+            })
+          });
       },
       getCategory(id=0){
         this.$axios.get('/api/category/getTree',{
@@ -859,6 +914,11 @@
             this.$delete(this.form.more,'thumbnail');
           }
           this.$set(this.form.more,'thumbnail',res.data.url);
+          this.$notify({
+            title:'上传',
+            message: '上传成功',
+            type:'success'
+          });
           // more.thumbnail=res.data.url;
           //Vue.set(this.form.more,'thumbnail',res.data.url);
         }
@@ -875,6 +935,11 @@
           let fileList=this.form.more.fileList;
           fileList.push({name:'附件',url:res.data.url});
           this.$set(this.form.more,'fileList',fileList);
+          this.$notify({
+            title:'上传',
+            message: '上传成功',
+            type:'success'
+          });
         }
       },
       deleteFileRow(index){
@@ -905,6 +970,11 @@
           let imageList=this.form.more.imageList;
           imageList.push({url:res.data.url});
           this.$set(this.form.more,'imageList',imageList);
+          this.$notify({
+            title:'上传',
+            message: '上传成功',
+            type:'success'
+          });
         }
       },
       deleteImageRow(index){
@@ -918,6 +988,12 @@
           return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
         }
         return;
+      },
+      beforeUploadNotify(file){
+        this.$notify({
+          title:'上传',
+          message: '正在上传...'
+        });
       }
     }
   }

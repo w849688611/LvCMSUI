@@ -7595,7 +7595,7 @@ var fillCharReg = new RegExp(domUtils.fillChar, "g");
 
         var html =
           (ie && browser.version < 9 ? "" : "<!DOCTYPE html>") +
-          "<html xmlns='http://www.w3.org/1999/xhtml' class='view' >" +
+          "<html xmlns='api://www.w3.org/1999/xhtml' class='view' >" +
           "<head>" +
           "<style type='text/css'>" +
           //设置四周的留边
@@ -7991,7 +7991,7 @@ var fillCharReg = new RegExp(domUtils.fillChar, "g");
       return (
         "<html><head>" +
         (me.options.charset
-          ? '<meta http-equiv="Content-Type" content="text/html; charset=' +
+          ? '<meta api-equiv="Content-Type" content="text/html; charset=' +
               me.options.charset +
               '"/>'
           : "") +
@@ -16447,7 +16447,7 @@ UE.plugins["list"] = function() {
       dot: ""
     },
     listDefaultPaddingLeft: "30",
-    listiconpath: "http://bs.baidu.com/listicon/",
+    listiconpath: "api://bs.baidu.com/listicon/",
     maxListLevel: -1, //-1不限制
     disablePInList: false
   });
@@ -18062,11 +18062,11 @@ UE.plugins["list"] = function() {
 
            orgFocus = me.focus;
            orgBlur = me.blur;
- 
+
            me.focus = function(){
              sourceEditor.focus();
            };
- 
+
            me.blur = function(){
              orgBlur.call(me);
              sourceEditor.blur();
@@ -19163,7 +19163,7 @@ UE.plugin.register(
                     .replace(new RegExp(domUtils.fillChar, "g"), "");
                   href = /^(?:https?:\/\/)/gi.test(href)
                     ? href
-                    : "http://" + href;
+                    : "api://" + href;
                   a.setAttribute("_src", utils.html(href));
                   a.href = utils.html(href);
 
@@ -19599,7 +19599,7 @@ UE.plugins["video"] = function() {
         str =
           '<embed type="application/x-shockwave-flash" class="' +
           classname +
-          '" pluginspage="http://www.macromedia.com/go/getflashplayer"' +
+          '" pluginspage="api://www.macromedia.com/go/getflashplayer"' +
           ' src="' +
           utils.html(url) +
           '" width="' +
@@ -26398,7 +26398,7 @@ UE.plugin.register("music", function() {
           me.options.langPath +
           me.options.lang +
           '/images/music.png" />'
-      : '<embed type="application/x-shockwave-flash" class="edui-faked-music" pluginspage="http://www.macromedia.com/go/getflashplayer"' +
+      : '<embed type="application/x-shockwave-flash" class="edui-faked-music" pluginspage="api://www.macromedia.com/go/getflashplayer"' +
           ' src="' +
           url +
           '" width="' +
@@ -32281,7 +32281,7 @@ UE.ui = baidu.editor.ui = {};
               dialogName = "musicDialog";
             }
             if (
-              img.src.indexOf("http://maps.google.com/maps/api/staticmap") != -1
+              img.src.indexOf("api://maps.google.com/maps/api/staticmap") != -1
             ) {
               dialogName = "gmapDialog";
             }

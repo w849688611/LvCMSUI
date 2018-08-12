@@ -218,6 +218,12 @@
       },
       methods:{
         showAddDialog(){
+          this.form={
+            name:'',
+              url:'',
+              is_default:0,
+              type:''
+          };
           this.addDialog=true;
         },
         showUpdateDialog(row){

@@ -2,14 +2,19 @@
   <div>
     <el-row>
       <el-col>
-        <el-button size="small" type="success" @click="showAddDialog">新增幻灯片组</el-button>
+        <el-button size="small" type="success" @click="showAddDialog" icon="el-icon-plus"></el-button>
+        <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
+        <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="slides" border size="medium" style="margin:10px auto;">
+    <el-table :data="slides" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      <el-table-column
+        type="selection"
+      >
+      </el-table-column>
       <el-table-column
         label="ID"
         prop="id"
-        width="60"
       >
       </el-table-column>
       <el-table-column
@@ -57,7 +62,7 @@
     </el-dialog>
     <el-dialog title="编辑幻灯片组" :visible.sync="updateDialog">
       <el-form :model="form" :rules="dataRules">
-        <el-form-item label="导航组名" prop="name">
+        <el-form-item label="配置组名" prop="name">
           <el-input v-model="form.name" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item label="描述">
@@ -72,10 +77,13 @@
     <el-dialog title="幻灯片项列表" :visible.sync="itemDialog">
       <el-row>
         <el-col>
-          <el-button size="small" type="success" @click="showAddItemDialog">新增幻灯片项</el-button>
+          <el-button size="small" type="success" @click="showAddItemDialog" icon="el-icon-plus"></el-button>
+          <el-button size="small" type="danger" @click="deleteItemDataBySelection" icon="el-icon-delete"></el-button>
+          <el-button size="small" icon="el-icon-refresh" @click="getItemData"></el-button>
         </el-col>
       </el-row>
-      <el-table :data="slideItems" border size="medium" style="margin:10px auto;">
+      <el-table :data="slideItems" border size="medium" style="margin:10px auto;" @selection-change="selectItemChange">
+        <el-table-column type="selection"></el-table-column>
         <el-table-column label="图片" width="300">
           <template slot-scope="scope">
             <img :src="scope.row.img_url" :alt="scope.row.name" style="width: 100%;height: auto;">
@@ -265,6 +273,8 @@
         currentPage:1,
         pageSize:10,
         total:0,
+        selection:[],
+        selectionItem:[],
         addDialog:false,
         updateDialog:false,
         itemDialog:false,
@@ -427,6 +437,9 @@
         this.currentSinglePage=page;
         this.getSingleData();
       },
+      selectChange(selection){
+        this.selection=selection;
+      },
       addData(){
         this.form.more=JSON.stringify(this.form.more);
         this.$axios.post('/api/slide/add',this.form,{
@@ -509,6 +522,32 @@
             utils.handleErr.call(this,err);
           })
       },
+      deleteDataBySelection(){
+        let ids=this.selection.map(item=>item.id);
+        this.$confirm('确认删除该项？')
+          .then(()=> {
+            this.$axios.post('/api/slide/delete',{
+              ids:ids
+            },{
+              headers:{
+                token:utils.getToken()
+              }
+            }).then(res=>{
+              if(res.data.status=='200'){
+                this.$message.success(res.data.msg);
+                this.getData();
+              }
+              else{
+                this.$message.error(utils.responseToString(res.data.msg));
+              }
+            }).catch(err=>{
+              utils.handleErr.call(this,err);
+            })
+          });
+      },
+      selectItemChange(selection){
+        this.selectionItem=selection;
+      },
       addItemData(){
         let itemForm=this.itemForm;
         itemForm.more=JSON.stringify(itemForm.more);
@@ -590,6 +629,29 @@
         }).catch(err=>{
           utils.handleErr.call(this,err);
         });
+      },
+      deleteItemDataBySelection(){
+        let ids=this.selectionItem.map(item=>item.id);
+        this.$confirm('确认删除该项？')
+          .then(()=> {
+            this.$axios.post('/api/slide/item/delete',{
+              ids:ids
+            },{
+              headers:{
+                token:utils.getToken()
+              }
+            }).then(res=>{
+              if(res.data.status=='200'){
+                this.$message.success(res.data.msg);
+                this.getItemData();
+              }
+              else{
+                this.$message.error(utils.responseToString(res.data.msg));
+              }
+            }).catch(err=>{
+              utils.handleErr.call(this,err);
+            })
+          });
       },
       uploadImgSuccess(res,file){
         if(res.status=='200'){

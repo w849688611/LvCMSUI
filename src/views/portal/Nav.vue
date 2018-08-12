@@ -2,10 +2,17 @@
   <div>
     <el-row>
       <el-col>
-        <el-button size="small" type="success" @click="showAddDialog">新增导航组</el-button>
+        <el-button size="small" type="success" @click="showAddDialog" icon="el-icon-plus"></el-button>
+        <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
+        <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="navs" border size="medium" style="margin:10px auto;">
+    <el-table :data="navs" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      <el-table-column
+        type="selection"
+        width="60"
+      >
+      </el-table-column>
       <el-table-column
         label="ID"
         prop="id"
@@ -72,14 +79,16 @@
     <el-dialog title="导航项列表" :visible.sync="itemDialog">
       <el-row>
         <el-col>
-          <el-button size="small" type="success" @click="showAddItemDialog">新增导航项</el-button>
+          <el-button size="small" type="success" @click="showAddItemDialog" icon="el-icon-plus"></el-button>
+          <el-button size="small" icon="el-icon-refresh" @click="getItemData"></el-button>
         </el-col>
       </el-row>
       <el-tree
         :data="navItems"
       default-expand-all
         :props="{label:'name'}"
-        class="navItemTree">
+        class="navItemTree"
+      >
         <span slot-scope="{ node, data }" class="treeNode">
         <span>{{`${data.name}(权重：${data.list_order})`}}</span>
         <span>
@@ -276,6 +285,7 @@
         treeDialog:false,
         tabDialog:false,
         tabActiveName:'first',
+        selection:[],
         navs:[],
         nowNavId:0,//正在显示列表的导航组id
         navItems:[],
@@ -443,6 +453,9 @@
         this.currentSinglePage=page;
         this.getSingleData();
       },
+      selectChange(selection){
+        this.selection=selection;
+      },
       addData(){
         this.form.more=JSON.stringify(this.form.more);
         this.$axios.post('/api/nav/add',this.form,{
@@ -524,6 +537,29 @@
           .catch(err=>{
             utils.handleErr.call(this,err);
           })
+      },
+      deleteDataBySelection(){
+        let ids=this.selection.map(item=>item.id);
+        this.$confirm('确认删除选中项？')
+          .then(()=> {
+            this.$axios.post('/api/nav/delete',{
+              ids:ids
+            },{
+              headers:{
+                token:utils.getToken()
+              }
+            }).then(res=>{
+              if(res.data.status=='200'){
+                this.$message.success(res.data.msg);
+                this.getData();
+              }
+              else{
+                this.$message.error(utils.responseToString(res.data.msg));
+              }
+            }).catch(err=>{
+              utils.handleErr.call(this,err);
+            })
+          });
       },
       addItemData(){
         let itemForm=this.itemForm;
