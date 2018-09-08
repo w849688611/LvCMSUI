@@ -1,3 +1,4 @@
+import Vue from 'vue'
 function responseToString(response){
   let result='';
   if(typeof response=='object'){
@@ -25,13 +26,14 @@ function clearToken(){
 }
 function handleErr(err){
   if(!err||!err.response){
-    this.$message.error(err.toString());
+    //this.$message.error(err.toString());
+    console.log(err.toString());
+    return;
   }
+  this.$message.error(err.response.data.msg);
   if(err.response.status===401){
     this.$router.replace('/login');
   }
-  console.log(err);
-  this.$message.error(err.response.data.msg);
 }
 function clearObj(obj){
   for(let key in obj){
@@ -50,6 +52,22 @@ function convertTime(timestamp){
   }
   return new Date();
 }
+function requestFullScreen(element){
+  let requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+  if (requestMethod) {
+    requestMethod.call(element);
+    return true;
+  }
+  return false;
+}
+function exitFullScreen(){
+  let exitMethod = document.exitFullscreen || document.webkitExitFullscreen || element.mozExitFullscreen || element.msExitFullscreen;
+  if (exitMethod) {
+    exitMethod.call(document);
+    return true;
+  }
+  return false;
+}
 export default {
   responseToString,
   getToken,
@@ -57,5 +75,7 @@ export default {
   clearToken,
   handleErr,
   clearObj,
-  convertTime
+  convertTime,
+  requestFullScreen,
+  exitFullScreen
 }

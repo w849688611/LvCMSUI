@@ -3,7 +3,7 @@
       <el-button size="small" type="success" @click="showAddDialog">新增模版</el-button>
       <el-tabs v-model="activeName">
         <el-tab-pane label="栏目模版" name="first">
-          <el-table border size="medium" :data="categoryTemplates">
+          <el-table border stripe size="medium" :data="categoryTemplates">
             <el-table-column prop="name" label="名称">
             </el-table-column>
             <el-table-column prop="url" label="URL">
@@ -42,7 +42,7 @@
           <!--</el-pagination>-->
         </el-tab-pane>
         <el-tab-pane label="内容模版" name="second">
-          <el-table border size="medium" :data="postTemplates">
+          <el-table border stripe size="medium" :data="postTemplates">
             <el-table-column prop="name" label="名称">
             </el-table-column>
             <el-table-column prop="url" label="URL">
@@ -81,7 +81,7 @@
           <!--</el-pagination>-->
         </el-tab-pane>
         <el-tab-pane label="单页模版" name="third">
-          <el-table border size="medium" :data="singleTemplates">
+          <el-table border stripe size="medium" :data="singleTemplates">
             <el-table-column prop="name" label="名称">
             </el-table-column>
             <el-table-column prop="url" label="URL">
@@ -175,6 +175,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
     export default {
         name: "template",
       data(){
@@ -183,17 +184,8 @@
             addDialog:false,
             updateDialog:false,
             categoryTemplates:[],
-            // currentCategoryTemplatePage:1,
-            // categoryTemplatePageSize:10,
-            // categoryTemplateTotal:0,
             postTemplates:[],
-            // currentPostTemplatePage:1,
-            // postTemplatePageSize:10,
-            // postTemplateTotal:0,
             singleTemplates:[],
-            // currentSingleTemplatePage:1,
-            // singleTemplatePageSize:10,
-            // singleTemplateTotal:0,
             form:{
               name:'',
               url:'',
@@ -227,13 +219,7 @@
           this.addDialog=true;
         },
         showUpdateDialog(row){
-          this.$axios.post('/api/template/get',{
-            id:row.id
-          },{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          apis.getTemplate(row.id).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.form=data.data;
@@ -244,26 +230,11 @@
             }else{
               this.$message.error(data.msg);
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
         },
-        // categoryTemplatePageChange(){
-        //
-        // },
-        // postTemplatePageChange(){
-        //
-        // },
-        // singleTemplatePageChange(){
-        //
-        // },
         addData(){
           this.form.more=JSON.stringify(this.form.more);
-          this.$axios.post('/api/template/add',this.form,{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          apis.addTemplate(this.form).then(res=>{
             if(res.data.status=='200'){
               this.$message.success(res.data.msg);
               this.addDialog=false;
@@ -273,20 +244,12 @@
             else{
               this.$message.error(utils.responseToString(res.data.msg));
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
           });
         },
         deleteData(row){
           this.$confirm('确认删除该项？')
             .then(()=> {
-              this.$axios.post('/api/template/delete',{
-                id:row.id
-              },{
-                headers:{
-                  token:utils.getToken()
-                }
-              }).then(res=>{
+              apis.deleteTemplate({id:row.id}).then(res=>{
                 if(res.data.status=='200'){
                   this.$message.success(res.data.msg);
                   this.getData();
@@ -294,18 +257,12 @@
                 else{
                   this.$message.error(utils.responseToString(res.data.msg));
                 }
-              }).catch(err=>{
-                utils.handleErr.call(this,err);
-              })
+              });
             });
         },
         updateData(){
           this.form.more=JSON.stringify(this.form.more);
-          this.$axios.post('/api/template/update',this.form,{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          apis.updateTemplate(this.form).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.updateDialog=false;
@@ -315,16 +272,10 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
           });
         },
         getData(){
-          this.$axios.get('/api/template/getCategoryTemplate',{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          apis.getCategoryTemplate().then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.categoryTemplates=data.data;
@@ -332,15 +283,8 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          })
-            .catch(err=>{
-              utils.handleErr.call(this,err);
-            });
-          this.$axios.get('/api/template/getSingleTemplate',{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          });
+          apis.getSingleTemplate().then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.singleTemplates=data.data;
@@ -348,15 +292,8 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          })
-            .catch(err=>{
-              utils.handleErr.call(this,err);
-            });
-          this.$axios.get('/api/template/getPostTemplate',{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          });
+          apis.getPostTemplate().then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.postTemplates=data.data;
@@ -364,10 +301,7 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          })
-            .catch(err=>{
-              utils.handleErr.call(this,err);
-            });
+          });
         }
       }
     }

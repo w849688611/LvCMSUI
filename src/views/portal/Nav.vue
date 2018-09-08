@@ -7,7 +7,7 @@
         <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="navs" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+    <el-table :data="navs" border size="medium" stripe style="margin:10px auto;" @selection-change="selectChange">
       <el-table-column
         type="selection"
         width="60"

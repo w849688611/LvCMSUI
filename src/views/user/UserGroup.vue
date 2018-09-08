@@ -5,7 +5,7 @@
         <el-button size="small" type="success" @click="showAddDialog">新增用户组</el-button>
       </el-col>
     </el-row>
-    <el-table :data="userGroups" border size="medium" style="margin:10px auto;">
+    <el-table :data="userGroups" border stripe size="medium" style="margin:10px auto;">
       <el-table-column
         label="用户组名称"
         prop="name"

@@ -11,7 +11,7 @@
           </el-col>
         </el-row>
         <br>
-        <el-table :data="comments" border size="medium">
+        <el-table :data="comments" stripe border size="medium">
           <el-table-column label="内容">
             <template slot-scope="scope">
               <div v-html="scope.row.content"></div>
@@ -183,6 +183,7 @@
 </template>
 
 <script>
+  import apis from '../../api/apis'
   import utils from '../../utils/utils'
     export default {
         name: "comment",
@@ -224,60 +225,45 @@
           this.searchPost();
         },
         searchComment(){
-          this.$axios.post('/api/comment/search',{
-            keyword:this.commentSearchContent
-          },{
-            headers:{
-              token:utils.getToken(),
-              page:this.currentCommentPage,
-              pageSize:this.commentPageSize
-            }
-          }).then(res=>{
+            apis.searchComment(
+              {
+                keyword:this.commentSearchContent,
+                page:this.currentCommentPage,
+                pageSize:this.commentPageSize
+              }
+              ).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.comments=data.data.pageData;
               this.commentTotal=data.data.total;
             }
             else{
-              this.$message.error(util.responseToString(data.msg));
+              this.$message.error(utils.responseToString(data.msg));
             }
-          }).catch(err=>{
-            util.handleErr.call(this,err);
-          })
+          });
         },
         searchPost(){
-          this.$axios.post('/api/post/search',{
-            keyword:this.postSearchContent,
-            page:this.currentPostPage,
-            pageSize:this.postPageSize
-          },{
-            headers:{
-              token:utils.getToken(),
-            }
-          }).then(res=>{
+            apis.getPosts({
+              title:this.postSearchContent,
+              page:this.currentPostPage,
+              pageSize:this.postPageSize
+            }).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.posts=data.data.pageData;
               this.postTotal=data.data.total;
             }
             else{
-              this.$message.error(util.responseToString(data.msg));
+              this.$message.error(utils.responseToString(data.msg));
             }
-          }).catch(err=>{
-            util.handleErr.call(this,err);
-          });
+          })
         },
         toggleCommentStatus(row){
           let id=row.id;
           let status=row.status;
-          console.log(status);
-          this.$axios.post('/api/comment/update',{
+          apis.updateComment({
             id:id,
             status:status
-          },{
-            headers:{
-              token:utils.getToken()
-            }
           }).then(res=>{
             let data=res.data;
             if(data.status=='200'){
@@ -286,20 +272,12 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
         },
         deleteComment(row){
           this.$confirm('确定删除该条评论？').then(()=>{
             let id=row.id;
-            this.$axios.post('/api/comment/delete',{
-              id:id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deleteComment({id:id}).then(res=>{
               let data=res.data;
               if(data.status=='200'){
                 this.$message.success(res.data.msg);
@@ -308,22 +286,12 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
         },
         showCommentDialog(row){
            this.comment={};
-            let id=row.id;
-            this.$axios.get('/api/comment/get',{
-              params:{
-                id:id
-              },
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.getComment({id:row.id}).then(res=>{
               let data=res.data;
               if(data.status=='200'){
                 this.comment=data.data;
@@ -332,8 +300,6 @@
               else{
                 this.$message.error(utils.responseToString(data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
         },
         showCommentListDialog(row){
@@ -344,23 +310,16 @@
           this.commentListDialog=true;
         },
         getPostComment(){
-          this.$axios.get('/api/post/getCommentOfPost',{
-            params:{
+            apis.getCommentOfPost({
               id:this.commentPostId,
               page:this.currentPostCommentPage,
               pageSize:this.postCommentPageSize
-            },
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+            }).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.postComments=data.data.pageData;
               this.postCommentTotal=data.data.total;
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
           });
         },
         commentPageChange(page){

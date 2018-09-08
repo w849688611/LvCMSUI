@@ -7,6 +7,7 @@ import store from './store'
 import VueParticles from 'vue-particles'
 import Element from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
+//import '../theme/index.css'
 import './assets/icon/iconfont.css'
 import http from './api/http'
 import VueNeditor from './components/VueNeditor'
@@ -69,7 +70,7 @@ router.beforeEach((to,from,next)=>{
       next('/login')
     }
   }
-next();
+  next();
 });
 /* eslint-disable no-new */
 new Vue({

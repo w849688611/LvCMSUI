@@ -7,7 +7,7 @@
             <el-button size="small" type="success" @click="showAddDialog">新增权限</el-button>
           </el-col>
         </el-row>
-        <el-table :data="roles" border size="medium" style="margin:10px auto;">
+        <el-table :data="roles" border size="medium" stripe style="margin:10px auto;">
           <el-table-column
             label="ID"
             prop="id"
@@ -147,6 +147,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
   export default {
     name: "auth",
     data(){
@@ -201,13 +202,7 @@
         this.addDialog=true;
       },
       showUpdateDialog(row){
-        this.$axios.post('/api/auth/get',{
-          id:row.id
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getAuth(row.id).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.form=data.data;
@@ -218,9 +213,7 @@
           }else{
             this.$message.error(data.msg);
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       },
       showTreeDialog(){
         this.getTree();
@@ -237,11 +230,7 @@
       },
       addData(){
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/auth/add',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+       apis.addAuth(this.form).then(res=>{
           if(res.data.status=='200'){
             this.$message.success(res.data.msg);
             this.addDialog=false;
@@ -252,20 +241,12 @@
           else{
             this.$message.error(utils.responseToString(res.data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       deleteData(row){
         this.$confirm('确认删除该项？')
           .then(()=> {
-            this.$axios.post('/api/auth/delete',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deleteAuth(row.id).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -274,18 +255,12 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       updateData(){
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/auth/update',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+       apis.updateAuth(this.form).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.updateDialog=false;
@@ -296,34 +271,20 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getData(){
-        this.$axios.post('/api/auth/getByPage',{
-          page:this.currentPage,
-          pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        })
+        apis.getAuths({ page:this.currentPage, pageSize:this.pageSize})
           .then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.roles=data.data.pageData;
               this.total=data.data.total;
             }
-          })
-          .catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
       },
       getTree(){
-        this.$axios.get('/api/auth/getTree',{headers:{
-          token:utils.getToken()
-        }}).then(res=>{
+        apis.getAuthTree().then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.authTree=data.data;
@@ -331,9 +292,7 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       }
     }
   }

@@ -1,25 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Login from '@/views/Login'
-import Base from '@/views/Base'
-import DashBoard from '@/views/dashboard/DashBoard'
-import Auth from '@/views/auth/Auth'
-import Admin from '@/views/auth/Admin'
-import Role from '@/views/auth/Role'
-import Category from '@/views/portal/Category'
-import Post from '@/views/portal/Post'
-import Comment from '@/views/portal/Comment'
-import Single from '@/views/portal/Single'
-import User from '@/views/user/User'
-import UserGroup from '@/views/user/UserGroup'
-import Template from '@/views/portal/Template'
-import Nav from '@/views/portal/Nav'
-import Slide from '@/views/portal/Slide'
-import Plugin from '@/views/plugin/Plugin'
-import FriendLink from '@/views/portal/FriendLink'
-import Setting from '@/views/setting/Setting'
-import SettingItem from '@/views/setting/SettingItem'
-import Test from '@/views/Test'
 Vue.use(Router);
 
 export default new Router({
@@ -27,102 +7,112 @@ export default new Router({
     {
       path:'/login',
       name:'Login',
-      component:Login
+      component:()=> import('@/views/Login')
     },
     {
       path:'/test',
       name:'Test',
-      component:Test
+      component:()=>import('@/views/Test')
     },
     {
       path:'/',
       name:'Base',
-      component:Base,
+      component:()=>import('@/views/Base'),
       children:[
         {
           path:'/',
           name:'DashBoard',
-          component:DashBoard
+          component:()=>import('@/views/dashboard/DashBoard')
         },
         {
           path:'/auth/auth',
           name:'Auth',
-          component:Auth
+          component:()=>import('@/views/auth/Auth')
         },
         {
           path:'/auth/admin',
           name:'Admin',
-          component:Admin
+          component:()=>import('@/views/auth/Admin')
         },
         {
           path:'/auth/role',
           name:'Role',
-          component:Role
+          component:()=>import('@/views/auth/Role')
         },
         {
           path:'/portal/category',
           name:'Category',
-          component:Category
+          component:()=>import('@/views/portal/Category')
         },
         {
           path:'/portal/post',
           name:'Post',
-          component:Post
+          component:()=>import('@/views/portal/Post')
         },
         {
           path:'/portal/comment',
           name:'Comment',
-          component:Comment
+          component:()=>import('@/views/portal/Comment')
         },
         {
           path:'/portal/single',
           name:'Single',
-          component:Single
-        },
-        {
-          path:'/user/user',
-          name:'User',
-          component:User
-        },
-        {
-          path:'/user/userGroup',
-          name:'UserGroup',
-          component:UserGroup
+          component:()=>import('@/views/portal/Single')
         },
         {
           path:'/portal/template',
           name:'Template',
-          component:Template
+          component:()=>import('@/views/portal/Template')
         },
         {
           path:'/portal/nav',
           name:'Nav',
-          component:Nav
+          component:()=>import('@/views/portal/Nav')
         },
         {
           path:'/portal/slide',
           name:'Slide',
-          component:Slide
-        },
-        {
-          path:'/plugin/plugin',
-          name:'Plugin',
-          component:Plugin
+          component:()=>import('@/views/portal/Slide')
         },
         {
           path:'/portal/friendLink',
           name:'FriendLink',
-          component:FriendLink
+          component:()=>import('@/views/portal/FriendLink')
+        },
+        {
+          path:'/user/user',
+          name:'User',
+          component:()=>import('@/views/user/User')
+        },
+        {
+          path:'/user/userGroup',
+          name:'UserGroup',
+          component:()=>import('@/views/user/UserGroup')
+        },
+        {
+          path:'/plugin/plugin',
+          name:'Plugin',
+          component:()=>import('@/views/plugin/Plugin')
         },
         {
           path:'/setting/setting',
           name:'Setting',
-          component:Setting
+          component:()=>import('@/views/setting/Setting')
         },
         {
           path:'/setting/settingItem',
-          name:'Setting',
-          component:SettingItem
+          name:'SettingItem',
+          component:()=>import('@/views/setting/SettingItem')
+        },
+        {
+          path:'/mail/mail',
+          name:'Mail',
+          component:()=>import('@/views/mail/Mail')
+        },
+        {
+          path:'/mail/sendMail',
+          name:'SendMail',
+          component:()=>import('@/views/mail/SendMail')
         }
       ]
     }

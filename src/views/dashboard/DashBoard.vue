@@ -40,7 +40,15 @@
           <div style="height: 30px;"></div>
         </el-col>
         <el-col :span="14">
-          <el-card shadow="never"></el-card>
+          <el-card shadow="never">
+            <el-alert
+              v-if="dashboard.mailCount==0"
+              title="未配置系统邮箱"
+              type="warning"
+              description="请至门户工具中配置系统邮箱"
+              show-icon>
+            </el-alert>
+          </el-card>
         </el-col>
         <el-col :span="10">
           <el-card shadow="never">
@@ -73,6 +81,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
     export default {
         name: "dash-board",
       data(){
@@ -85,19 +94,13 @@
       },
       methods:{
           getData(){
-            this.$axios.get('/api/dashboard/getBackDashBoard',{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.getDashBoardData().then(res=>{
               if(res.data.status=='200'){
                 this.dashboard=res.data.data;
               }
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
           },
         convertTime(timestamp){

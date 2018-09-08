@@ -7,7 +7,7 @@
         <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="links" v-loading="loading" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+    <el-table :data="links" v-loading="loading" border stripe size="medium" style="margin:10px auto;" @selection-change="selectChange">
       <el-table-column
         type="selection"
         width="40">
@@ -153,7 +153,6 @@
           this.addDialog=true;
         },
         showUpdateDialog(row){
-          console.log(row);
           this.$axios.post('/api/plugin/friendLink/get',{
             id:row.id
           },{
@@ -255,13 +254,11 @@
                 this.links=data.data.pageData;
                 this.total=data.data.total;
               }
+              this.loading=false;
             })
             .catch(err=>{
               utils.handleErr.call(this,err);
-            })
-            .finally(()=>{
-              this.loading=false;
-          });
+            });
         },
         deleteDataBySelection(){
           let ids=this.selection.map(item=>item.id);

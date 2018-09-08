@@ -65,9 +65,11 @@
     <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
     <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
   </el-row>
-  <el-table :data="settingItems" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+  <el-table :data="settingItems" border stripe size="medium" style="margin:10px auto;" @selection-change="selectChange">
     <el-table-column type="selection"></el-table-column>
     <el-table-column label="配置名" prop="name">
+    </el-table-column>
+    <el-table-column label="描述" prop="excerpt" width="250">
     </el-table-column>
     <el-table-column label="内容">
       <template slot-scope="scope">
@@ -85,7 +87,7 @@
               </span>
       </template>
     </el-table-column>
-    <el-table-column label="状态" prop="name">
+    <el-table-column label="状态" width="100">
       <template slot-scope="scope">
         <el-tooltip content="切换状态" placement="top">
           <el-switch
@@ -127,6 +129,9 @@
       <el-form :model="form" :rules="dataRules">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="form.excerpt"></el-input>
         </el-form-item>
         <el-form-item label="配置组">
           <el-select v-model="form.setting_id">
@@ -207,6 +212,9 @@
       <el-form :model="form" :rules="dataRules">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="form.excerpt"></el-input>
         </el-form-item>
         <el-form-item label="配置组">
           <el-select v-model="form.setting_id">
@@ -306,6 +314,7 @@
             form:{
               setting_id:0,
               name:'',
+              excerpt:'',
               type:0,
               status:1,
               content:'',
@@ -327,11 +336,15 @@
           this.getData();
           this.getSetting();
       },
+      activated(){
+        this.getSetting();
+      },
       methods:{
         showAddDialog(){
           this.form={
             setting_id:0,
             name:'',
+            excerpt:'',
             type:0,
             status:1,
             content:'',

@@ -5,7 +5,7 @@
       <el-button size="small" type="success" @click="showAddDialog">新增角色</el-button>
     </el-col>
   </el-row>
-  <el-table :data="roles" border size="medium" style="margin:10px auto;">
+  <el-table :data="roles" border stripe size="medium" style="margin:10px auto;">
     <el-table-column
     label="角色名称"
     prop="name"
@@ -70,6 +70,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
     export default {
         name: "role",
       data(){
@@ -94,21 +95,15 @@
           }
       },
       mounted(){
-          this.getData();
+        this.getData();
         this.getTree();
       },
       methods:{
-          showAddDialog(){
+        showAddDialog(){
             this.addDialog=true;
           },
         showUpdateDialog(row){
-            this.$axios.post('/api/role/get',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.getRole(row.id).then(res=>{
               let data=res.data;
               if(data.status=='200'){
                 this.form=data.data;
@@ -116,40 +111,24 @@
               }else{
                 this.$message.error(data.msg);
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
         },
         showTreeDialog(row){
           this.tempId=row.id;
           this.treeDialog=true;
-            this.$axios.get('/api/role/get',{
-              params:{
-                id:row.id
-              },
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.getRole(row.id).then(res=>{
               let data=res.data;
                 if(data.status=='200'){
                   this.treeDialog=true;
-                  console.log(this.$refs.tree);
                   this.$refs.tree.setCheckedNodes(data.data.auth);
                 }
                 else{
                   this.$message.error(utils.responseToString(data.msg));
                 }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
         },
         addData(){
-            this.$axios.post('/api/role/add',this.form,{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.addRole(this.form).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.addDialog=false;
@@ -159,20 +138,12 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
         },
         deleteData(row){
           this.$confirm('确认删除该项？')
             .then(()=> {
-              this.$axios.post('/api/role/delete',{
-                id:row.id
-              },{
-                headers:{
-                  token:utils.getToken()
-                }
-              }).then(res=>{
+              apis.deleteRole(row.id).then(res=>{
                 if(res.data.status=='200'){
                   this.$message.success(res.data.msg);
                   this.getData();
@@ -180,17 +151,11 @@
                 else{
                   this.$message.error(utils.responseToString(res.data.msg));
                 }
-              }).catch(err=>{
-                utils.handleErr.call(this,err);
-              })
+              });
             });
         },
         updateData(){
-            this.$axios.post('/api/role/update',this.form,{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.updateRole(this.form).then(res=>{
               let data=res.data;
               if(data.status=='200'){
                 this.updateDialog=false;
@@ -200,38 +165,23 @@
               else{
                 this.$message.error(utils.responseToString(data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
         },
         getData(){
-            this.$axios.post('/api/role/getByPage',{
-              page:this.currentPage,
-              pageSize:this.pageSize
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            })
-              .then(res=>{
+           apis.getRoles({page:this.currentPage,pageSize:this.pageSize}).then(res=>{
                 let data=res.data;
                 if(data.status=='200'){
                   this.roles=data.data.pageData;
                   this.total=data.data.total;
                 }
-              })
-              .catch(err=>{
-                utils.handleErr.call(this,err);
-            })
+              });
           },
         pageChange(page){
             this.currentPage=page;
             this.getData();
         },
         getTree(){
-          this.$axios.get('/api/auth/getTree',{headers:{
-              token:utils.getToken()
-            }}).then(res=>{
+         apis.getAuthTree().then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.authTree=data.data;
@@ -239,20 +189,11 @@
             else{
               this.$message.error(utils.responseToString(data.msg));
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
         },
         setAuth(){
             let auths=this.$refs.tree.getCheckedNodes();
-            this.$axios.post('/api/role/bindAuth',{
-              id:this.tempId,
-              auths:JSON.stringify(auths)
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.bindAuth(this.tempId,JSON.stringify(auths)).then(res=>{
               let data=res.data;
               if(data.status=='200'){
                 this.$message.success('配置权限成功');
@@ -261,8 +202,6 @@
               else{
                 this.$message.error(utils.responseToString(data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
             });
         }
       }

@@ -1,26 +1,42 @@
 <template>
   <div>
-    <el-row>
-      <el-col :span="8">
+    <el-form :inline="true" class="searchForm">
+      <el-form-item>
         <el-button size="small" type="success" @click="showAddDialog" icon="el-icon-plus"></el-button>
         <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
         <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
-      </el-col>
-      <el-col :span="6" :offset="8">
-        <el-input v-model="searchText"></el-input>
-      </el-col>
-      <el-col :span="2">
+      </el-form-item>
+      <el-form-item label="标题">
+        <el-input v-model="search.title"></el-input>
+      </el-form-item>
+      <el-form-item label="作者">
+        <el-input v-model="search.author"></el-input>
+      </el-form-item>
+      <el-form-item label="状态">
+        <el-select  placeholder="状态" v-model="search.status">
+          <el-option label="全部" :value="-1"></el-option>
+          <el-option label="发布" :value="1"></el-option>
+          <el-option label="未发布" :value="0"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-button icon="el-icon-search" type="primary" @click="searchData"></el-button>
-      </el-col>
-    </el-row>
-    <el-table :data="posts" v-loading="loading" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      </el-form-item>
+    </el-form>
+    <el-table :data="posts" v-loading="loading" border size="medium" stripe style="margin:10px auto;" @selection-change="selectChange">
       <el-table-column
         type="selection"
         width="40">
       </el-table-column>
       <el-table-column
         label="标题"
-        prop="title"></el-table-column>
+        prop="title">
+        <template slot-scope="scope">
+          {{scope.row.title}}
+          <el-tag v-if="scope.row.is_top==1" size="mini" color="#FF5722"><span style="color: white">置顶</span></el-tag>
+          <el-tag v-if="scope.row.is_recommend==1" size="mini" color="#5FB878"><span style="color: white">推荐</span></el-tag>
+        </template>
+      </el-table-column>
       <el-table-column
         label="作者"
         prop="author"
@@ -38,14 +54,10 @@
       <el-table-column
         label="状态信息" width="100">
         <template slot-scope="scope">
-          <div v-if="scope.row.post_status==1" class="close"><i class="el-icon-third-attentionfavor"></i></div>
-          <div v-if="scope.row.post_status==0" class="open"><i class="el-icon-third-attentionfavor"></i></div>
-          <div v-if="scope.row.comment_status==1" class="close"><i class="el-icon-third-round_comment_light"></i><br></div>
-          <div v-if="scope.row.comment_status==0" class="open"><i class="el-icon-third-round_comment_light"></i><br></div>
-          <div v-if="scope.row.is_top==1" class="open"><i class="el-icon-third-crown"></i><br></div>
-          <div v-if="scope.row.is_top==0" class="close"><i class="el-icon-third-crown"></i><br></div>
-          <div v-if="scope.row.is_recommend==1" class="open"><i class="el-icon-third-newshot"></i><br></div>
-          <div v-if="scope.row.is_recommend==0" class="close"><i class="el-icon-third-newshot"></i><br></div>
+          <el-tag v-if="scope.row.post_status==1" size="mini" color="#5FB878"><span style="color: white">发布</span></el-tag>
+          <el-tag v-if="scope.row.post_status==0" size="mini" color="#FF5722"><span style="color: white">未发布</span></el-tag>
+          <el-tag v-if="scope.row.comment_status==1" size="mini" color="#5FB878"><span style="color: white">评论开启</span></el-tag>
+          <el-tag v-if="scope.row.comment_status==0" size="mini" color="#FF5722"><span style="color: white">评论关闭</span></el-tag>
         </template>
       </el-table-column>
       <el-table-column
@@ -203,6 +215,7 @@
               <div slot="header">文章模版</div>
               <el-form-item>
                 <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
+                  <el-option label="暂无选择" :value="0"></el-option>
                   <el-option
                     v-for="item in templates"
                     :key="item.id"
@@ -317,6 +330,7 @@
                   class="avatar-uploader"
                   :action="fileUploadUrl"
                   :headers="uploadHeaders"
+                  :before-upload="beforeImageUpload"
                   :show-file-list="false"
                   :on-success="uploadThumbnailSuccess">
                   <img v-if="form.more.thumbnail" :src="form.more.thumbnail" class="avatar">
@@ -355,6 +369,7 @@
               <div slot="header">文章模版</div>
               <el-form-item>
                 <el-select v-model="form.template_id" placeholder="请选择模版" style="width: 100%;">
+                  <el-option label="暂无选择" :value="0"></el-option>
                   <el-option
                     v-for="item in templates"
                     :key="item.id"
@@ -460,12 +475,17 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
   export default {
     name: "post",
     data(){
       return{
         loading:false,
-        searchText:'',
+        search:{
+          title:'',
+          author:'',
+          status:-1
+        },
         getDataType:'1',//1为普通获取，2为搜索获取
         currentPage:1,
         pageSize:10,
@@ -494,6 +514,7 @@
           excerpt:'',
           content:'',
           category:[],
+          template_id:0,
           more:{}
         },
         //由于element本身的表格组件没有提供获取勾选项的方法，
@@ -544,6 +565,7 @@
             excerpt:'',
             content:'',
             category:[],
+            template_id:0,
             more:{}
         };
         this.addDialog=true;
@@ -564,15 +586,10 @@
           excerpt:'',
           content:'',
           category:[],
+          template_id:0,
           more:{}
         };
-        this.$axios.post('/api/post/get',{
-          id:row.id
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getPost(row.id).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.form=data.data;
@@ -582,16 +599,14 @@
             if(this.form.published_time.toString().length==10){
               this.form.published_time*=1000;
             }
-            if(!this.form.more) {
+            if(!this.form.more||(Array.isArray(this.form.more)&&this.form.more.length==0)) {
               this.form.more = {};
             }
             this.updateDialog=true;
           }else{
             this.$message.error(data.msg);
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       },
       showCategorySelectDialog(){
         this.categorySelectDialog = true;
@@ -647,11 +662,7 @@
         form.category=JSON.stringify(form.category);
         form.more=JSON.stringify(this.form.more);
         form.content=this.$refs.addEditor.getContent();
-        this.$axios.post('/api/post/add',form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.addPost(form).then(res=>{
           if(res.data.status=='200'){
             this.$message.success(res.data.msg);
             this.addDialog=false;
@@ -661,20 +672,12 @@
           else{
             this.$message.error(utils.responseToString(res.data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       deleteData(row){
         this.$confirm('确认删除该项？')
           .then(()=> {
-            this.$axios.post('/api/post/delete',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deletePost({id:row.id}).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -682,9 +685,7 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       updateData(){
@@ -700,11 +701,7 @@
         form.category=JSON.stringify(this.form.category);
         form.more=JSON.stringify(this.form.more);
         form.content=this.$refs.updateEditor.getContent();
-        this.$axios.post('/api/post/update',form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.updatePost(form).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.updateDialog=false;
@@ -714,21 +711,20 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getData(){
-        this.loading=true;
-        this.$axios.post('/api/post/getByPage',{
+        let params={
+          title:this.search.title,
+          author:this.search.author,
           page:this.currentPage,
           pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        })
-          .then(res=>{
+        };
+        if(this.search.status!=-1){
+          params.post_status=this.search.status;
+        }
+        this.loading=true;
+          apis.getPosts(params).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.posts=data.data.pageData;
@@ -736,50 +732,11 @@
             }
             this.loading=false;
           })
-          .catch(err=>{
-            this.loading=false;
-            utils.handleErr.call(this,err);
-          });
-        //   .finally(()=>{
-        //  兼容性低
-        // });
       },
       searchData(){
-        if(this.searchText.trim()==''){
-          this.currentPage=1;
-          this.pageSize=10;
-          this.getDataType=1;
-          this.getData();
-          return;
-        }
-        //若为首次搜索，则改变数据获取类型标识，并归位分页
-        if(this.getDataType=='1'){
-          this.getDataType='2';
-          this.currentPage=1;
-          this.pageSize=10;
-        }
-        this.loading=true;
-        this.$axios.post('/api/post/search',{
-          keyword:this.searchText,
-          page:this.currentPage,
-          pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken(),
-          }
-        }).then(res=>{
-          this.loading=false;
-          let data=res.data;
-          if(data.status=='200'){
-            this.posts=data.data.pageData;
-            this.total=data.data.total;
-          }
-          else{
-            this.$message.error(util.responseToString(data.msg));
-          }
-        }).catch(err=>{
-          util.handleErr.call(this,err);
-        });
+        this.currentPage=1;
+        this.pageSize=10;
+        this.getData();
       },
       selectChange(selection){
         this.selection=selection;
@@ -788,13 +745,7 @@
         let ids=this.selection.map(item=>item.id);
         this.$confirm('确认删除所选项？')
           .then(()=> {
-            this.$axios.post('/api/post/delete',{
-              ids:ids
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deletePost({ids:ids}).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -802,21 +753,11 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       getCategory(id=0){
-        this.$axios.get('/api/category/getTree',{
-          params:{
-            postId:id,
-            type:1
-          },
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getCategoryTree({postId:id, type:1}).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.categories=data.data;
@@ -829,11 +770,7 @@
         })
       },
       getTemplate(){
-        this.$axios.get('api/template/getPostTemplate',{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getPostTemplate().then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.templates=data.data;
@@ -843,36 +780,25 @@
         });
       },
       getComment(){
-        this.$axios.get('/api/post/getCommentOfPost',{
-          params:{
-            id:this.commentPostId,
-            page:this.currentCommentPage,
-            pageSize:this.commentPageSize
-          },
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        let params={
+          id:this.commentPostId,
+          page:this.currentCommentPage,
+          pageSize:this.commentPageSize
+        };
+        apis.getCommentOfPost(params).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.comments=data.data.pageData;
             this.commentTotal=data.data.total;
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       toggleCommentStatus(row){
         let id=row.id;
         let status=row.status;
-        console.log(status);
-        this.$axios.post('/api/comment/update',{
+        apis.updateComment({
           id:id,
           status:status
-        },{
-          headers:{
-            token:utils.getToken()
-          }
         }).then(res=>{
           let data=res.data;
           if(data.status=='200'){
@@ -881,20 +807,12 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       },
       deleteComment(row){
         this.$confirm('确定删除该条评论？').then(()=>{
           let id=row.id;
-          this.$axios.post('/api/comment/delete',{
-            id:id
-          },{
-            headers:{
-              token:utils.getToken()
-            }
-          }).then(res=>{
+          apis.deleteComment({id:id}).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.$message.success(res.data.msg);
@@ -903,9 +821,7 @@
             else{
               this.$message.error(utils.responseToString(res.data.msg));
             }
-          }).catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
         });
       },
       uploadThumbnailSuccess(res,file){
@@ -1008,12 +924,6 @@
     display: inline-block;
     color: #009688;
   }
-  /*.postContentEditor .ql-container{*/
-    /*min-height: 300px;*/
-  /*}*/
-  /*.postContentEditor .ql-editor{*/
-    /*min-height: 300px;*/
-  /*}*/
   .avatar-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     border-radius: 6px;
@@ -1037,5 +947,10 @@
     width: 100%;
     height: auto;
     display: block;
+  }
+  .searchForm{
+    background: #eee;
+    padding-top: 25px;
+    padding-left: 10px;
   }
 </style>

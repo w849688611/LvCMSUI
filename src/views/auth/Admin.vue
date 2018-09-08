@@ -5,7 +5,7 @@
         <el-button size="small" type="success" @click="showAddDialog">新增管理员</el-button>
       </el-col>
     </el-row>
-    <el-table :data="admins" border size="medium" style="margin:10px auto;">
+    <el-table :data="admins" border size="medium" stripe style="margin:10px auto;">
       <el-table-column
         label="ID"
         prop="id"
@@ -129,6 +129,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
   export default {
     name: "admin",
     data(){
@@ -178,13 +179,7 @@
         this.addDialog=true;
       },
       showUpdateDialog(row){
-        this.$axios.post('/api/admin/get',{
-          id:row.id
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getAdmin(row.id).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.form=data.data;
@@ -194,8 +189,6 @@
           }else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         })
       },
       showRoleSelectDialog(){
@@ -212,11 +205,7 @@
         this.getData();
       },
       addData(){
-        this.$axios.post('/api/admin/add',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.addAdmin(this.form).then(res=>{
           if(res.data.status=='200'){
             this.$message.success(res.data.msg);
             this.addDialog=false;
@@ -226,20 +215,12 @@
           else{
             this.$message.error(utils.responseToString(res.data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       deleteData(row){
         this.$confirm('确认删除该项？')
           .then(()=> {
-            this.$axios.post('/api/admin/delete',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deleteAdmin(row.id).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -247,17 +228,11 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       updateData(){
-        this.$axios.post('/api/admin/update',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.updateAdmin(this.form).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.updateDialog=false;
@@ -267,44 +242,27 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getData(){
-        this.$axios.post('/api/admin/getByPage',{
-          page:this.currentPage,
-          pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        })
-          .then(res=>{
+        apis.getAdmins({page:this.currentPage,pageSize:this.pageSize}).then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.admins=data.data.pageData;
               this.total=data.data.total;
             }
-          })
-          .catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
       },
       getRole(){
-        this.$axios.get('/api/role/get',{headers:{
-            token:utils.getToken()
-          }}).then(res=>{
+        apis.getRoles().then(res=>{
           let data=res.data;
           if(data.status=='200'){
-            this.roles=data.data;
+            this.roles=data.data.pageData;
           }
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       }
     }
   }

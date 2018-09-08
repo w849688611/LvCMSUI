@@ -5,7 +5,7 @@
         <el-button size="small" type="success" @click="showAddDialog">新增单页</el-button>
       </el-col>
     </el-row>
-    <el-table :data="singles" border size="medium" style="margin:10px auto;">
+    <el-table :data="singles" border stripe size="medium" style="margin:10px auto;">
       <el-table-column
         label="ID"
         prop="id"
@@ -131,6 +131,7 @@
 
 <script>
   import utils from '../../utils/utils'
+  import apis from '../../api/apis'
   export default {
     name: "single",
     data(){
@@ -178,13 +179,8 @@
       },
       showUpdateDialog(row){
         this.getTemplate();
-        this.$axios.post('/api/single/get',{
-          id:row.id
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getSingle(row.id)
+          .then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.form=data.data;
@@ -195,8 +191,6 @@
           }else{
             this.$message.error(data.msg);
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       pageChange(page){
@@ -206,11 +200,8 @@
       addData(){
         this.form.content=this.$refs.addEditor.getContent();
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/single/add',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+          apis.addSingle(this.form)
+          .then(res=>{
           if(res.data.status=='200'){
             this.$message.success(res.data.msg);
             this.addDialog=false;
@@ -220,20 +211,13 @@
           else{
             this.$message.error(utils.responseToString(res.data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       deleteData(row){
         this.$confirm('确认删除该项？')
           .then(()=> {
-            this.$axios.post('/api/single/delete',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deleteSingle({id:row.id})
+            .then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -241,19 +225,14 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       updateData(){
         this.form.content=this.$refs.updateEditor.getContent();
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/single/update',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.updateSingle(this.form)
+          .then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.updateDialog=false;
@@ -263,42 +242,25 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getData(){
-        this.$axios.post('/api/single/getByPage',{
-          page:this.currentPage,
-          pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        })
+        apis.getSingles({page:this.currentPage,
+          pageSize:this.pageSize})
           .then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.singles=data.data.pageData;
               this.total=data.data.total;
             }
-          })
-          .catch(err=>{
-            utils.handleErr.call(this,err);
           });
       },
       getTemplate(){
-        this.$axios.get('api/template/getSingleTemplate',{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getSingleTemplate().then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.templates=data.data;
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
     }

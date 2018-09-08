@@ -7,7 +7,7 @@
         <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-col>
     </el-row>
-    <el-table :data="slides" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+    <el-table :data="slides" border stripe size="medium" style="margin:10px auto;" @selection-change="selectChange">
       <el-table-column
         type="selection"
       >
@@ -656,6 +656,11 @@
       uploadImgSuccess(res,file){
         if(res.status=='200'){
           this.$set(this.itemForm,'img_url',res.data.url);
+          this.$notify({
+            title:'上传',
+            message: '上传成功',
+            type:'success'
+          });
         }
       },
       getCategoryData(){

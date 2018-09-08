@@ -7,7 +7,7 @@
             <el-button size="small" type="success" @click="showAddDialog">新增栏目</el-button>
           </el-col>
         </el-row>
-        <el-table :data="categories" border size="medium" style="margin:10px auto;">
+        <el-table :data="categories" border stripe size="medium" style="margin:10px auto;">
           <el-table-column
             label="ID"
             prop="id"
@@ -226,6 +226,7 @@
 </template>
 
 <script>
+  import apis from '../../api/apis'
   import utils from '../../utils/utils'
   export default {
     name: "category",
@@ -290,13 +291,7 @@
         this.addDialog=true;
       },
       showUpdateDialog(row){
-        this.$axios.post('/api/category/get',{
-          id:row.id
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getCategory(row.id).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.form=data.data;
@@ -307,9 +302,7 @@
           }else{
             this.$message.error(data.msg);
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       },
       showTreeDialog(){
         this.getTree();
@@ -317,35 +310,22 @@
       },
       showPostDialog(data){
         let id=data.id;
-        this.$axios.get('/api/category/getPostOfCategory',{
-          params:{
-            id:id
-          },
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getPostOfCategory({id:id}).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.categoryPost=data.data;
             this.postDialog=true;
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
-        })
+        });
       },
       showPostContentDialog(row){
         let id=row.id;
-        this.$axios.post('/api/post/get',{id:id},{headers:{
-          token:utils.getToken()
-          }}).then(res=>{
+        apis.getPost(id).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.post=data.data;
             this.postContentDialog=true;
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       selectCategory(data){
@@ -360,11 +340,7 @@
       addData(){
         this.form.content=this.$refs.addEditor.getContent();
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/category/add',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.addCategory(this.form).then(res=>{
           if(res.data.status=='200'){
             this.$message.success(res.data.msg);
             this.addDialog=false;
@@ -375,20 +351,12 @@
           else{
             this.$message.error(utils.responseToString(res.data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       deleteData(row){
         this.$confirm('确认删除该项？')
           .then(()=> {
-            this.$axios.post('/api/category/delete',{
-              id:row.id
-            },{
-              headers:{
-                token:utils.getToken()
-              }
-            }).then(res=>{
+            apis.deleteCategory({id:row.id}).then(res=>{
               if(res.data.status=='200'){
                 this.$message.success(res.data.msg);
                 this.getData();
@@ -397,19 +365,13 @@
               else{
                 this.$message.error(utils.responseToString(res.data.msg));
               }
-            }).catch(err=>{
-              utils.handleErr.call(this,err);
-            })
+            });
           });
       },
       updateData(){
         this.form.content=this.$refs.updateEditor.getContent();
         this.form.more=JSON.stringify(this.form.more);
-        this.$axios.post('/api/category/update',this.form,{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.updateCategory(this.form).then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.updateDialog=false;
@@ -420,34 +382,20 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getData(){
-        this.$axios.post('/api/category/getByPage',{
-          page:this.currentPage,
-          pageSize:this.pageSize
-        },{
-          headers:{
-            token:utils.getToken()
-          }
-        })
+        apis.getCategories({ page:this.currentPage, pageSize:this.pageSize})
           .then(res=>{
             let data=res.data;
             if(data.status=='200'){
               this.categories=data.data.pageData;
               this.total=data.data.total;
             }
-          })
-          .catch(err=>{
-            utils.handleErr.call(this,err);
-          })
+          });
       },
       getTree(){
-        this.$axios.get('/api/category/getTree',{headers:{
-            token:utils.getToken()
-          }}).then(res=>{
+        apis.getCategoryTree().then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.categoryTree=data.data;
@@ -455,16 +403,10 @@
           else{
             this.$message.error(utils.responseToString(data.msg));
           }
-        }).catch(err=>{
-          utils.handleErr.call(this,err);
         });
       },
       getTemplate(){
-        this.$axios.get('api/template/getCategoryTemplate',{
-          headers:{
-            token:utils.getToken()
-          }
-        }).then(res=>{
+        apis.getCategoryTemplate().then(res=>{
           let data=res.data;
           if(data.status=='200'){
             this.templates=data.data;

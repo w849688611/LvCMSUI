@@ -5,7 +5,7 @@
         <el-button size="small" type="danger" @click="deleteDataBySelection" icon="el-icon-delete"></el-button>
         <el-button size="small" icon="el-icon-refresh" @click="getData"></el-button>
       </el-row>
-      <el-table :data="settingsReal" border size="medium" style="margin:10px auto;" @selection-change="selectChange">
+      <el-table :data="settingsReal" border stripe size="medium" style="margin:10px auto;" @selection-change="selectChange">
         <el-table-column
           width="60"
           type="selection"
@@ -69,7 +69,7 @@
     <el-button type="primary" @click="updateData">确定</el-button>
     </span>
       </el-dialog>
-      <el-dialog title="配置项列表" :visible.sync="itemDialog">
+      <el-dialog title="配置项列表" :visible.sync="itemDialog" width="70%">
         <el-row>
           <el-col>
             <el-button size="small" type="success" @click="showAddItemDialog" icon="el-icon-plus"></el-button>
@@ -80,6 +80,8 @@
         <el-table :data="settingItems" border size="medium" style="margin:10px auto;" @selection-change="selectItemChange">
           <el-table-column type="selection"></el-table-column>
           <el-table-column label="配置名" prop="name">
+          </el-table-column>
+          <el-table-column label="描述" prop="excerpt" width="200">
           </el-table-column>
           <el-table-column label="内容">
             <template slot-scope="scope">
@@ -97,7 +99,7 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="状态" prop="name">
+          <el-table-column label="状态" width="100">
             <template slot-scope="scope">
               <el-tooltip content="切换状态" placement="top">
                 <el-switch
@@ -130,6 +132,9 @@
         <el-form :model="itemForm" :rules="itemDataRules">
           <el-form-item label="名称" prop="name">
             <el-input v-model="itemForm.name"></el-input>
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input v-model="itemForm.excerpt"></el-input>
           </el-form-item>
           <el-form-item label="类型">
             <el-select v-model="itemForm.type" placeholder="请选择">
@@ -198,6 +203,9 @@
         <el-form :model="itemForm" :rules="itemDataRules">
           <el-form-item label="名称" prop="name">
             <el-input v-model="itemForm.name"></el-input>
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input v-model="itemForm.excerpt"></el-input>
           </el-form-item>
           <el-form-item label="类型">
             <el-select v-model="itemForm.type" placeholder="请选择">
@@ -298,6 +306,7 @@
             itemForm:{
               setting_id:'',
               name:'',
+              excerpt:'',
               type:0,
               status:1,
               content:'',

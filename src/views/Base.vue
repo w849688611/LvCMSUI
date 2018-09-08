@@ -3,7 +3,8 @@
   <el-header class="header">
     <h1 class="logoName">LvCMS</h1>
     <!--<span @click="menuCollapse=!menuCollapse" style="color: white;font-size: 22px;cursor: pointer;"><i class="el-icon-menu"></i></span>-->
-    <span @click="logout" class="logout"><i class="el-icon-third-exit"></i>&nbsp;退出登录</span>
+    <span @click="logout" class="rightIcon"><i class="el-icon-third-exit"></i>&nbsp;退出登录</span>
+    <span @click="toggleFullScreen" class="rightIcon" style="margin-right: 10px;"><i class="el-icon-menu">全屏</i></span>
   </el-header>
   <el-container style="height: 100%;">
     <el-aside :width="menuCollapse?'auto':'230px'" class="aside">
@@ -65,6 +66,7 @@
       data(){
         return {
           menuCollapse:false,
+          fullScreen:false,
           //menu:[],
           breadPath:[]
         };
@@ -95,7 +97,7 @@
       },
       methods:{
         getAuth(){
-          apis.getAuth().then(res=>{
+          apis.getAuthMenu().then(res=>{
             let data=res.data;
             if(data.status='200'){
               this.$store.commit('Menu/setMenu',data.data);
@@ -113,6 +115,19 @@
               }
             }
           });
+        },
+        toggleFullScreen(){
+          if(this.fullScreen==false){
+            if(utils.requestFullScreen(document.body)){
+              this.fullScreen=true;
+            }
+          }
+          else{
+            if(utils.exitFullScreen()){
+              this.fullScreen=false;
+            }
+          }
+
         },
         logout(){
           apis.logout().then(res=>{
@@ -207,7 +222,15 @@
     width: 210px;
     margin: 0;
   }
-  .logout{
+  /*.logout{*/
+    /*display: inline-block;*/
+    /*line-height: 60px;*/
+    /*color: white;*/
+    /*cursor: pointer;*/
+    /*float: right;*/
+    /*font-size: 14px;*/
+  /*}*/
+  .rightIcon{
     display: inline-block;
     line-height: 60px;
     color: white;

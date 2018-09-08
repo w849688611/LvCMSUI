@@ -41,7 +41,7 @@
       <img :src="captchaUrl" alt="captcha" slot="append" class="captchaImg" @click="captchaId=Date.now()">
     </el-input>
     <div class="divider"></div>
-    <el-button @click="login" @keyup.enter.native="login" style="width: 90%;" type="primary">登录</el-button>
+      <el-button @click="login" style="width: 90%;" type="primary">登录</el-button>
   </div>
 </div>
 </template>
